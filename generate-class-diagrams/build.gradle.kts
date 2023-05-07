@@ -10,8 +10,10 @@ repositories {
 dependencies {
     // Command-line (CLI) support
     implementation("com.github.ajalt.clikt", "clikt", "3.5.2")
-    // JSON and YAML
-    implementation("com.google.code.gson","gson", "2.10.1")
+    // JSON
+    implementation("com.google.code.gson", "gson", "2.10.1")
+    // YAML
+    implementation("org.yaml", "snakeyaml", "2.0")
 
     // Test
     testImplementation(kotlin("test"))
