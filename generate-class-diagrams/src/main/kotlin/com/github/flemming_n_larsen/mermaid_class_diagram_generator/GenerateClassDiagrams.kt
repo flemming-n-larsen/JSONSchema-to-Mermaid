@@ -25,12 +25,9 @@ class GenerateClassDiagrams : CliktCommand() {
 
     override fun run() {
 
-        val files = HashSet<Path>()
-        collectAllFiles(source, files)
-
-        files.forEach {
-            val schema = readSchema(it)
-            println(schema.dollarId)
+        val schemas = readSchemas()
+        schemas.forEach {
+            println(it.dollarId)
         }
     }
 
@@ -63,5 +60,16 @@ class GenerateClassDiagrams : CliktCommand() {
     private fun readYamlSchema(path: Path): Schema {
         val yaml: Map<String, Any> = yaml.load(FileReader(path.toFile()))
         return gson.fromJson(gson.toJson(yaml),  Schema::class.java)
+    }
+
+    private fun readSchemas(): List<Schema> {
+        val files = mutableSetOf<Path>()
+        collectAllFiles(source, files)
+
+        val schemas = mutableListOf<Schema>()
+        files.forEach {
+            schemas.add(readSchema(it))
+        }
+        return schemas
     }
 }
