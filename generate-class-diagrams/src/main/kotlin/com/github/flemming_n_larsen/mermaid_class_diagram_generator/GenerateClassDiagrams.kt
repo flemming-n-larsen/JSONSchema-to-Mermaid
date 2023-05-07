@@ -23,12 +23,16 @@ class GenerateClassDiagrams : CliktCommand() {
     private val gson = GsonBuilder().create()
     private val yaml = Yaml()
 
+    private val jsonFileExtRegex = Regex("(?i).json$")
+    private val yamlFileExtRegex = Regex("(?i).yaml$")
+    private val ymlFileExtRegex = Regex("(?i).yml$")
+
     override fun run() {
 
-        val schemas = readSchemas()
-        schemas.forEach {
-            println(it.dollarId)
-        }
+        val strBuilder = StringBuilder()
+        outputSchemas(readSchemas(), strBuilder)
+
+        print(strBuilder)
     }
 
     private fun collectAllFiles(source: Set<Path>, fileSetOut: MutableSet<Path>) {
@@ -54,15 +58,20 @@ class GenerateClassDiagrams : CliktCommand() {
         return if (lastIndexOf > 0) fileName.substring(lastIndexOf + 1).lowercase() else ""
     }
 
-    private fun readJsonSchema(path: Path): Schema =
-        gson.fromJson(FileReader(path.toFile()), Schema::class.java)
+    private fun readJsonSchema(path: Path): Schema {
+        val schema = gson.fromJson(FileReader(path.toFile()), Schema::class.java)
+        if (schema.dollarId.isNullOrBlank()) {
+            schema.dollarId = path.fileName.toString()
+        }
+        return schema
+    }
 
     private fun readYamlSchema(path: Path): Schema {
         val yaml: Map<String, Any> = yaml.load(FileReader(path.toFile()))
-        return gson.fromJson(gson.toJson(yaml),  Schema::class.java)
+        return gson.fromJson(gson.toJson(yaml), Schema::class.java)
     }
 
-    private fun readSchemas(): List<Schema> {
+    private fun readSchemas(): Collection<Schema> {
         val files = mutableSetOf<Path>()
         collectAllFiles(source, files)
 
@@ -71,5 +80,32 @@ class GenerateClassDiagrams : CliktCommand() {
             schemas.add(readSchema(it))
         }
         return schemas
+    }
+
+    private fun outputSchemas(schemas: Collection<Schema>, strBuilder: StringBuilder) {
+        strBuilder.append("classDiagram\n")
+        schemas.forEach { outputSchema(it, strBuilder) }
+    }
+
+    private fun outputSchema(schema: Schema, strBuilder: StringBuilder) {
+        strBuilder.append("class ").append(toClassName(schema.dollarId!!))
+        if (schema.properties?.isNotEmpty() == true) {
+            strBuilder.append("{")
+            strBuilder.append("}")
+        } else {
+            strBuilder.append("\n")
+        }
+    }
+
+    private fun toClassName(schemaId: String): String {
+        var className = schemaId.trim()
+        val lastIndex = schemaId.lastIndexOf("/")
+        if (lastIndex >= 0) {
+            className = schemaId.substring(lastIndex + 1)
+        }
+        className = className.replace(jsonFileExtRegex, "")
+        className = className.replace(yamlFileExtRegex, "")
+        className = className.replace(ymlFileExtRegex, "")
+        return className
     }
 }

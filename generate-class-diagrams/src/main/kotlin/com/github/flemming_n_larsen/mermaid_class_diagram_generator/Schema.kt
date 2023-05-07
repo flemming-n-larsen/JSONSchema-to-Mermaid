@@ -8,4 +8,6 @@ data class Schema(
 
     @SerializedName("\$schema")
     var dollarSchema: String?,
+
+    var properties: Map<String, Any>?
 )

@@ -1,4 +1,4 @@
 {
-  "$id": "sub-sub1.json",
+  "$id": "sub-dir/sub-sub-dir/sub-sub1.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema"
 }
