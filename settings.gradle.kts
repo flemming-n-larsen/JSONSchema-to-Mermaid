@@ -1,2 +1,2 @@
-rootProject.name = "Mermaid-ClassDiagram-Generator"
-include("generate-class-diagrams")
+rootProject.name = "JSONSchema-to-Mermaid"
+include("jsonschema-to-mermaid")
