@@ -20,8 +20,10 @@ object SchemaFilesReader {
         source.flatMap { file ->
             if (file.isDirectory()) {
                 collectAllFiles(Files.list(file).toList().toSet())
-            } else {
+            } else if (setOf("json", "yaml", "yml").contains(getFileExtension(file))) {
                 setOf(file)
+            } else {
+                setOf()
             }
         }.toSet()
 

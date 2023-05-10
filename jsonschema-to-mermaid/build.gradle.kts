@@ -17,6 +17,8 @@ dependencies {
 
     // Test
     testImplementation(kotlin("test"))
+    // Kotest
+    testImplementation("io.kotest", "kotest-runner-junit5", "5.6.2")
 }
 
 
