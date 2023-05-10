@@ -1,4 +1,4 @@
-package com.github.flemming_n_larsen.mermaid_class_diagram_generator
+package jsonschema_to_mermaid
 
 import com.google.gson.annotations.SerializedName
 

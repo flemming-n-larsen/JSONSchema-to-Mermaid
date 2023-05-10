@@ -1,4 +1,5 @@
-import com.github.flemming_n_larsen.mermaid_class_diagram_generator.SchemaFilesReader
+package jsonschema_to_mermaid
+
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import util.resourcePath
