@@ -1,5 +1,8 @@
+val artifactBaseName = "jsonschema-to-mermaid"
+
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.8.21"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     application
 }
 
@@ -21,11 +24,24 @@ dependencies {
     testImplementation("io.kotest", "kotest-runner-junit5", "5.6.2")
 }
 
-
 application {
-    mainClass.set("com.github.flemming_n_larsen.mermaid_class_diagram_generator.AppKt")
+    mainClass.set("jsonschema_to_mermaid.AppKt")
 }
 
-tasks.test {
-    useJUnitPlatform()
+tasks {
+    jar {
+        manifest {
+            attributes["Main-Class"] = application.mainClass
+        }
+    }
+
+    shadowJar.configure {
+        dependsOn(jar)
+        archiveBaseName.set(artifactBaseName)
+        archiveClassifier.set(null as String?) // get rid of "-all" classifier
+    }
+
+    test {
+        useJUnitPlatform()
+    }
 }
