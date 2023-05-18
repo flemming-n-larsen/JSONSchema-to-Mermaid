@@ -2,10 +2,6 @@ package jsonschema_to_mermaid
 
 object MermaidGenerator {
 
-    private val jsonFileExtRegex = Regex("(?i).json$")
-    private val yamlFileExtRegex = Regex("(?i).yaml$")
-    private val ymlFileExtRegex = Regex("(?i).yml$")
-
     fun generate(schemas: Collection<Schema>): String {
         val strBuilder = StringBuilder()
         strBuilder.append("classDiagram\n")
@@ -14,7 +10,7 @@ object MermaidGenerator {
     }
 
     private fun outputSchema(schema: Schema, strBuilder: StringBuilder) {
-        strBuilder.append("class ").append(toClassName(schema.dollarId!!))
+        strBuilder.append("class ").append(getClassName(schema))
         if (schema.properties?.isNotEmpty() == true) {
             strBuilder.append("{")
             strBuilder.append("}")
@@ -23,15 +19,16 @@ object MermaidGenerator {
         }
     }
 
-    private fun toClassName(schemaId: String): String {
-        var className = schemaId.trim()
-        val lastIndex = schemaId.lastIndexOf("/")
+    private fun getClassName(schema: Schema): String =
+        (schema.title ?: getClassNameFromId(schema)).trim()
+
+    private fun getClassNameFromId(schema: Schema): String {
+        var className =
+            schema.`$id`?.trim() ?: throw IllegalStateException("schema is missing title and \$id fields")
+        val lastIndex = className.lastIndexOf("/")
         if (lastIndex >= 0) {
-            className = schemaId.substring(lastIndex + 1)
+            className = className.substring(lastIndex + 1)
         }
-        className = className.replace(jsonFileExtRegex, "")
-        className = className.replace(yamlFileExtRegex, "")
-        className = className.replace(ymlFileExtRegex, "")
         return className
     }
 }

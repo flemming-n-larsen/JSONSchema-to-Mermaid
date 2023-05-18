@@ -1,13 +1,10 @@
 package jsonschema_to_mermaid
 
-import com.google.gson.annotations.SerializedName
-
 data class Schema(
-    @SerializedName("\$id")
-    var dollarId: String?,
+    var `$id`: String? = null,
+    var `$schema`: String? = null,
 
-    @SerializedName("\$schema")
-    var dollarSchema: String?,
+    var title: String? = null,
 
-    var properties: Map<String, Any>?
+    var properties: Map<String, Any>? = mapOf()
 )

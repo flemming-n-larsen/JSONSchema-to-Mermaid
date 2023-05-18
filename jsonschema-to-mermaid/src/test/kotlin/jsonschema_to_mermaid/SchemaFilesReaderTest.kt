@@ -15,11 +15,11 @@ class SchemaFilesReaderTest : FunSpec({
             val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/core")))
             schemas.size shouldBe 5
 
-            schemas.first { it.dollarId == "core.yaml" }.dollarSchema shouldBe Schema_2020_12
-            schemas.first { it.dollarId == "sub-dir/sub1.json" }.dollarSchema shouldBe Schema_2020_12
-            schemas.first { it.dollarId == "sub-dir/sub2.yaml" }.dollarSchema shouldBe Schema_2020_12
-            schemas.first { it.dollarId == "sub-dir/sub-sub-dir/sub-sub1.json" }.dollarSchema shouldBe Schema_2020_12
-            schemas.first { it.dollarId == "sub-dir/sub-sub-dir/sub-sub2.yml" }.dollarSchema shouldBe Schema_2020_12
+            schemas.first { it.`$id` == "core.yaml" }.`$schema` shouldBe Schema_2020_12
+            schemas.first { it.`$id` == "sub-dir/sub1.json" }.`$schema` shouldBe Schema_2020_12
+            schemas.first { it.`$id` == "sub-dir/sub2.yaml" }.`$schema` shouldBe Schema_2020_12
+            schemas.first { it.`$id` == "sub-dir/sub-sub-dir/sub-sub1.json" }.`$schema` shouldBe Schema_2020_12
+            schemas.first { it.`$id` == "sub-dir/sub-sub-dir/sub-sub2.yml" }.`$schema` shouldBe Schema_2020_12
         }
     }
 })
