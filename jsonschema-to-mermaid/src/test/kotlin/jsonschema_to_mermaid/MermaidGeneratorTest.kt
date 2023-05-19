@@ -9,7 +9,7 @@ class MermaidGeneratorTest  : FunSpec({
 
     context("title") {
 
-        test("Test that title is found and when filepath, \$id, and title exists") {
+        test("Test that title is found and when filename, \$id, and title exists") {
             val schema = Schema()
             schema.`$id` = "something"
             schema.title = "  Foo Bar "
@@ -19,7 +19,7 @@ class MermaidGeneratorTest  : FunSpec({
             output.indexOf("class Foo Bar") shouldBeGreaterThan 0
         }
 
-        test("Test that file name without extension is found and used when title is missing, but filepath and \$id exists") {
+        test("Test that file name (without extension) is found and used when title is missing, but filepath and \$id exists") {
             val schema = Schema()
             schema.`$id` = "something"
             val schemaData = SchemaData("foo-bar.json", schema)
