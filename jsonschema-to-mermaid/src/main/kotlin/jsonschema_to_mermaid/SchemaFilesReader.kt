@@ -6,6 +6,7 @@ import java.io.FileReader
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
+import kotlin.io.path.name
 import kotlin.streams.toList
 
 object SchemaFilesReader {
@@ -13,8 +14,11 @@ object SchemaFilesReader {
     private val gson = GsonBuilder().create()
     private val yaml = Yaml()
 
-    fun readSchemas(source: Set<Path>): Collection<Schema> =
-        collectAllFiles(source).map { readSchema(it) }
+    fun readSchemas(source: Set<Path>): Collection<SchemaData> =
+        collectAllFiles(source).map { filepath ->
+            val schema = readSchema(filepath)
+            SchemaData(filepath.name, schema)
+        }
 
     private fun collectAllFiles(source: Set<Path>): Set<Path> =
         source.flatMap { file ->
