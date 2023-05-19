@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.8.21"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     application
+    kotlin("jvm") version "1.8.21"
 }
 
 repositories {
@@ -22,6 +23,7 @@ dependencies {
     testImplementation(kotlin("test"))
     // Kotest
     testImplementation("io.kotest", "kotest-runner-junit5", "5.6.2")
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 application {
@@ -29,10 +31,9 @@ application {
 }
 
 tasks {
-    jar {
-        manifest {
-            attributes["Main-Class"] = application.mainClass
-        }
+    // to make `gradle build` happy
+    startScripts.configure {
+        dependsOn(shadowJar)
     }
 
     shadowJar.configure {
@@ -41,7 +42,16 @@ tasks {
         archiveClassifier.set(null as String?) // get rid of "-all" classifier
     }
 
+    jar {
+        manifest {
+            attributes["Main-Class"] = application.mainClass
+        }
+    }
+
     test {
         useJUnitPlatform()
     }
+}
+kotlin {
+    jvmToolchain(11)
 }
