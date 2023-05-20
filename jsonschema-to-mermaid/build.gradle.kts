@@ -1,10 +1,9 @@
 val artifactBaseName = "jsonschema-to-mermaid"
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.8.21"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
     application
     kotlin("jvm") version "1.8.21"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 repositories {
@@ -52,6 +51,7 @@ tasks {
         useJUnitPlatform()
     }
 }
+
 kotlin {
     jvmToolchain(11)
 }
