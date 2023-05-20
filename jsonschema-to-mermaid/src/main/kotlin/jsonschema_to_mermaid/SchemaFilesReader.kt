@@ -46,11 +46,7 @@ object SchemaFilesReader {
 
     private fun readJsonSchema(path: Path): Schema {
         FileReader(path.toFile()).use { fileReader ->
-            val schema = gson.fromJson(fileReader, Schema::class.java)
-            if (schema.`$id`.isNullOrBlank()) {
-                schema.`$id` = path.fileName.toString()
-            }
-            return schema
+            return gson.fromJson(fileReader, Schema::class.java)
         }
     }
 
