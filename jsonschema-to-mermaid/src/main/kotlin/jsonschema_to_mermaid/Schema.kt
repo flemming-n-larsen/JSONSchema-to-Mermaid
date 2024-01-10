@@ -6,5 +6,6 @@ data class Schema(
 
     val title: String? = null,
 
-    val properties: Map<String, Any>? = mapOf()
+    val type: String? = null,
+    val properties: Map<String, Property>? = mapOf(),
 )

@@ -11,12 +11,20 @@ object MermaidGenerator {
 
     private fun outputSchema(schemaData: SchemaData, strBuilder: StringBuilder) {
         strBuilder.append("class ").append(getClassName(schemaData))
-        if (schemaData.schema.properties?.isNotEmpty() == true) {
+
+        val properties = schemaData.schema.properties
+        if (properties?.isNotEmpty() == true) {
             strBuilder.append("{")
+            properties.entries.forEach { outputProperty(name = it.key, property = it.value, strBuilder) }
             strBuilder.append("}")
         } else {
             strBuilder.append("\n")
         }
+    }
+
+    private fun outputProperty(name: String, property: Property, strBuilder: StringBuilder) {
+        val type = property.format ?: property.type
+        strBuilder.append("$name:$type\n")
     }
 
     private fun getClassName(schemaData: SchemaData): String =
@@ -26,8 +34,7 @@ object MermaidGenerator {
 
     private fun getClassNameFromFilePath(filepath: String?): String? {
         var classname = filepath
-        val index = classname?.indexOf(".")
-        index?.let {
+        classname?.indexOf(".")?.let { index ->
             if (index > 0) {
                 classname = classname?.substring(0, index)
             }
