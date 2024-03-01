@@ -1,15 +1,19 @@
 package jsonschema_to_mermaid
 
+import jsonschema_to_mermaid.file.SchemaFileInfo
+import jsonschema_to_mermaid.jsonschema.Property
+import jsonschema_to_mermaid.jsonschema.Schema
+
 object MermaidGenerator {
 
-    fun generate(schemas: Collection<SchemaData>): String {
+    fun generate(schemas: Collection<SchemaFileInfo>): String {
         val strBuilder = StringBuilder()
         strBuilder.append("classDiagram\n")
         schemas.forEach { outputSchema(it, strBuilder) }
         return strBuilder.toString()
     }
 
-    private fun outputSchema(schemaData: SchemaData, strBuilder: StringBuilder) {
+    private fun outputSchema(schemaData: SchemaFileInfo, strBuilder: StringBuilder) {
         strBuilder.append("class ").append(getClassName(schemaData))
 
         val properties = schemaData.schema.properties
@@ -27,7 +31,7 @@ object MermaidGenerator {
         strBuilder.append("$name:$type\n")
     }
 
-    private fun getClassName(schemaData: SchemaData): String =
+    private fun getClassName(schemaData: SchemaFileInfo): String =
         (schemaData.schema.title
             ?: getClassNameFromFilePath(schemaData.filename)
             ?: getClassNameFromId(schemaData.schema)).trim()
@@ -44,7 +48,7 @@ object MermaidGenerator {
 
     private fun getClassNameFromId(schema: Schema): String {
         var className =
-            schema.`$id`?.trim() ?: throw IllegalStateException("schema is missing title and \$id fields")
+            schema.`$id`?.trim() ?: throw IllegalStateException("jsonschema is missing title and \$id fields")
         val lastIndex = className.lastIndexOf("/")
         if (lastIndex >= 0) {
             className = className.substring(lastIndex + 1)

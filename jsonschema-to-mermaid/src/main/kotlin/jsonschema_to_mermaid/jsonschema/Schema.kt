@@ -1,4 +1,4 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.jsonschema
 
 data class Schema(
     val `$id`: String? = null,

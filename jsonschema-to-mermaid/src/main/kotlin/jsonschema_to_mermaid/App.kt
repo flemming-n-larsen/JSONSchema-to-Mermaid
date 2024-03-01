@@ -5,11 +5,12 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.arguments.unique
 import com.github.ajalt.clikt.parameters.types.path
+import jsonschema_to_mermaid.file.SchemaFilesReader
 import java.nio.file.Path
 
-fun main(args: Array<String>) = GenerateClassDiagrams().main(args)
+fun main(args: Array<String>) = GenerateClassDiagrams.main(args)
 
-class GenerateClassDiagrams : CliktCommand() {
+object GenerateClassDiagrams : CliktCommand() {
     private val source: Set<Path> by argument().path(mustExist = true).multiple().unique()
     private val dest: Path by argument().path()
 

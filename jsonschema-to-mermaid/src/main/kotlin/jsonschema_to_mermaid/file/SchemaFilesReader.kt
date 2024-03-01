@@ -1,6 +1,7 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.file
 
 import com.google.gson.GsonBuilder
+import jsonschema_to_mermaid.jsonschema.Schema
 import org.yaml.snakeyaml.Yaml
 import java.io.FileReader
 import java.nio.file.Files
@@ -14,10 +15,10 @@ object SchemaFilesReader {
     private val gson = GsonBuilder().create()
     private val yaml = Yaml()
 
-    fun readSchemas(source: Set<Path>): Collection<SchemaData> =
+    fun readSchemas(source: Set<Path>): Collection<SchemaFileInfo> =
         collectAllFiles(source).map { filepath ->
             val schema = readSchema(filepath)
-            SchemaData(filepath.name, schema)
+            SchemaFileInfo(filepath.name, schema)
         }
 
     private fun collectAllFiles(source: Set<Path>): Set<Path> =
