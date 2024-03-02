@@ -11,6 +11,8 @@ repositories {
 }
 
 dependencies {
+    implementation(kotlin("stdlib-jdk8"))
+
     // Command-line (CLI) support
     implementation("com.github.ajalt.clikt", "clikt", "3.5.2")
     // JSON
@@ -18,11 +20,12 @@ dependencies {
     // YAML
     implementation("org.yaml", "snakeyaml", "2.0")
 
-    // Test
+    // Testing
+
+    // Kotlin test (required)
     testImplementation(kotlin("test"))
-    // Kotest
+    // Kotest (Kotlin testing)
     testImplementation("io.kotest", "kotest-runner-junit5", "5.6.2")
-    implementation(kotlin("stdlib-jdk8"))
 }
 
 application {

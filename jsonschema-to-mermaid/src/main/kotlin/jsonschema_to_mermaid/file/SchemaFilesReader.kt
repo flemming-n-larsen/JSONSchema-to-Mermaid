@@ -15,7 +15,7 @@ object SchemaFilesReader {
     private val gson = GsonBuilder().create()
     private val yaml = Yaml()
 
-    fun readSchemas(source: Set<Path>): Collection<SchemaFileInfo> =
+    fun readSchemas(source: Set<Path>): List<SchemaFileInfo> =
         collectAllFiles(source).map { filepath ->
             val schema = readSchema(filepath)
             SchemaFileInfo(filepath.name, schema)
