@@ -4,6 +4,7 @@ import com.google.gson.JsonSyntaxException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.throwable.shouldHaveMessage
+import jsonschema_to_mermaid.schema_files.SchemaFilesReader
 import test_util.resourcePath
 import java.io.FileNotFoundException
 

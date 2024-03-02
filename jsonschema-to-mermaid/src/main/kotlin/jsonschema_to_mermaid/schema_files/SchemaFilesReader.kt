@@ -1,4 +1,4 @@
-package jsonschema_to_mermaid.file
+package jsonschema_to_mermaid.schema_files
 
 import com.google.gson.GsonBuilder
 import jsonschema_to_mermaid.jsonschema.Schema

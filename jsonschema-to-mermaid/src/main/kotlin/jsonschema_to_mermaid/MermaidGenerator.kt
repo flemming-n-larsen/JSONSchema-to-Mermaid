@@ -1,6 +1,6 @@
 package jsonschema_to_mermaid
 
-import jsonschema_to_mermaid.file.SchemaFileInfo
+import jsonschema_to_mermaid.schema_files.SchemaFileInfo
 import jsonschema_to_mermaid.jsonschema.Property
 import jsonschema_to_mermaid.jsonschema.Schema
 
