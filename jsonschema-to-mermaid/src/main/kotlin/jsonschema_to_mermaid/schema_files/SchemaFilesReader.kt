@@ -1,6 +1,8 @@
 package jsonschema_to_mermaid.schema_files
 
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonSyntaxException
+import jsonschema_to_mermaid.exception.FileFormatException
 import jsonschema_to_mermaid.jsonschema.Schema
 import org.yaml.snakeyaml.Yaml
 import java.io.FileReader
@@ -15,11 +17,12 @@ object SchemaFilesReader {
     private val gson = GsonBuilder().create()
     private val yaml = Yaml()
 
-    fun readSchemas(source: Set<Path>): List<SchemaFileInfo> =
-        collectAllFiles(source).map { filepath ->
+    fun readSchemas(source: Set<Path>): List<SchemaFileInfo> {
+        return collectAllFiles(source).map { filepath ->
             val schema = readSchema(filepath)
             SchemaFileInfo(filepath.name, schema)
         }
+    }
 
     private fun collectAllFiles(source: Set<Path>): Set<Path> =
         source.flatMap { file ->
@@ -36,7 +39,7 @@ object SchemaFilesReader {
         when (getFileExtension(path)) {
             "json" -> readJsonSchema(path)
             "yaml", "yml" -> readYamlSchema(path)
-            else -> throw UnsupportedOperationException("Unsupported file type: ${path.fileName}")
+            else -> throw FileFormatException("Unsupported schema file type: ${path.fileName}")
         }
 
     private fun getFileExtension(path: Path): String {
@@ -46,15 +49,23 @@ object SchemaFilesReader {
     }
 
     private fun readJsonSchema(path: Path): Schema {
-        FileReader(path.toFile()).use { fileReader ->
-            return gson.fromJson(fileReader, Schema::class.java)
+        try {
+            FileReader(path.toFile()).use { fileReader ->
+                return gson.fromJson(fileReader, Schema::class.java)
+            }
+        } catch (e: JsonSyntaxException) {
+            throw FileFormatException("Could not parse JSON schema file", e)
         }
     }
 
     private fun readYamlSchema(path: Path): Schema {
-        FileReader(path.toFile()).use { fileReader ->
-            val yaml: Map<String, Any> = yaml.load(fileReader)
-            return gson.fromJson(gson.toJson(yaml), Schema::class.java)
+        try {
+            FileReader(path.toFile()).use { fileReader ->
+                val yaml: Map<String, Any> = yaml.load(fileReader)
+                return gson.fromJson(gson.toJson(yaml), Schema::class.java)
+            }
+        } catch (e: ClassCastException) {
+            throw FileFormatException("Could not parse YAML schema file", e)
         }
     }
 }

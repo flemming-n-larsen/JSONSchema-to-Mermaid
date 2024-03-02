@@ -12,7 +12,7 @@ object MermaidClassDiagramGenerator {
     )
 
     private fun generateClass(schema: jsonschema_to_mermaid.jsonschema.Schema) = ClassDefinition(
-        title = schema.title ?: "[title is missing]",
+        title = schema.title ?: "[no name]",
         properties = schema.properties?.map { generateProperty(it.key, it.value) }?.toList() ?: listOf()
     )
 

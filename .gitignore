@@ -1,7 +1,7 @@
-# Compiled class file
+# Compiled class schema_files
 *.class
 
-# Log file
+# Log schema_files
 *.log
 
 # Package Files #
