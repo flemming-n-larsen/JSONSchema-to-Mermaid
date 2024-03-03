@@ -15,15 +15,16 @@ dependencies {
 
     // Command-line (CLI) support
     implementation("com.github.ajalt.clikt", "clikt", "3.5.2")
-    // JSON
-    implementation("com.google.code.gson", "gson", "2.10.1")
-    // YAML
-    implementation("org.yaml", "snakeyaml", "2.0")
+
+    // JSONSchema
+    implementation("net.pwall.json:json-kotlin-schema:0.47")
+
 
     // Testing
 
     // Kotlin test (required)
     testImplementation(kotlin("test"))
+
     // Kotest (Kotlin testing)
     testImplementation("io.kotest", "kotest-runner-junit5", "5.6.2")
 }
