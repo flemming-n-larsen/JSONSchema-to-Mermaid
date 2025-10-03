@@ -1,8 +1,9 @@
 package jsonschema_to_mermaid.schema_files
 
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonSyntaxException
 import jsonschema_to_mermaid.exception.FileFormatException
+import jsonschema_to_mermaid.jsonschema.Extends
+import jsonschema_to_mermaid.jsonschema.ExtendsTypeAdapter
 import jsonschema_to_mermaid.jsonschema.Schema
 import org.yaml.snakeyaml.Yaml
 import java.io.FileReader
@@ -14,19 +15,15 @@ import kotlin.streams.toList
 
 object SchemaFilesReader {
 
-    private val gson = GsonBuilder().create()
+    private val gson = GsonBuilder()
+        .registerTypeAdapter(Extends::class.java, ExtendsTypeAdapter())
+        .create()
     private val yaml = Yaml()
 
     fun readSchemas(source: Set<Path>): List<SchemaFileInfo> {
-        return collectAllFiles(source).mapNotNull { filepath ->
-            try {
-                val schema = readSchema(filepath)
-                SchemaFileInfo(filepath.name, schema)
-            } catch (e: Exception) {
-                // Log the problem and skip this file rather than failing the whole run
-                System.err.println("Warning: skipping '${filepath}': ${e.message}")
-                null
-            }
+        return collectAllFiles(source).map { filepath ->
+            val schema = readSchema(filepath)
+            SchemaFileInfo(filepath.name, schema)
         }
     }
 
@@ -57,9 +54,11 @@ object SchemaFilesReader {
     private fun readJsonSchema(path: Path): Schema {
         try {
             FileReader(path.toFile()).use { fileReader ->
-                return gson.fromJson(fileReader, Schema::class.java)
+                val schema = gson.fromJson(fileReader, Schema::class.java)
+                if (schema == null) throw FileFormatException("Could not parse JSON schema file: null result")
+                return resolveExtends(schema, path)
             }
-        } catch (e: JsonSyntaxException) {
+        } catch (e: Exception) {
             throw FileFormatException("Could not parse JSON schema file", e)
         }
     }
@@ -69,14 +68,48 @@ object SchemaFilesReader {
             FileReader(path.toFile()).use { fileReader ->
                 val yamlObj: Any? = yaml.load(fileReader)
                 if (yamlObj !is Map<*, *>) {
-                    throw FileFormatException("YAML root is not a mapping for file: ${path.fileName}")
+                    throw FileFormatException("YAML root is not a mapping for file: \\${path.fileName}")
                 }
                 @Suppress("UNCHECKED_CAST")
                 val yamlMap = yamlObj as Map<String, Any>
-                return gson.fromJson(gson.toJson(yamlMap), Schema::class.java)
+                val schema = gson.fromJson(gson.toJson(yamlMap), Schema::class.java)
+                if (schema == null) throw FileFormatException("Could not parse YAML schema file: null result")
+                return resolveExtends(schema, path)
             }
-        } catch (e: ClassCastException) {
+        } catch (e: Exception) {
             throw FileFormatException("Could not parse YAML schema file", e)
         }
+    }
+
+    // New: resolve extends property by merging referenced schema
+    private fun resolveExtends(schema: Schema, path: Path): Schema {
+        val extends = schema.extends
+        if (extends == null) return schema
+        val refPath = when (extends) {
+            is jsonschema_to_mermaid.jsonschema.Extends.Ref -> path.parent.resolve(extends.ref)
+            is jsonschema_to_mermaid.jsonschema.Extends.Object -> path.parent.resolve(extends.ref)
+        }
+        val baseSchema = readSchema(refPath)
+        // Merge baseSchema into schema, with schema taking precedence
+        return schema.copy(
+            properties = mergeMaps(baseSchema.properties, schema.properties),
+            required = mergeLists(baseSchema.required, schema.required),
+            definitions = mergeMaps(baseSchema.definitions, schema.definitions),
+            // extends is not propagated
+        )
+    }
+
+    private fun <K, V> mergeMaps(base: Map<K, V>?, override: Map<K, V>?): Map<K, V>? {
+        if (base == null && override == null) return null
+        if (base == null) return override
+        if (override == null) return base
+        return base + override // override takes precedence
+    }
+
+    private fun <T> mergeLists(base: List<T>?, override: List<T>?): List<T>? {
+        if (base == null && override == null) return null
+        if (base == null) return override
+        if (override == null) return base
+        return (base + override).distinct()
     }
 }

@@ -10,4 +10,11 @@ data class Schema(
     val properties: Map<String, Property>? = mapOf(),
     val required: List<String>? = listOf(),
     val definitions: Map<String, Schema>? = mapOf(),
+    val extends: Extends? = null, // New: support for extends
 )
+
+// New: Extends data class to support both string and object forms
+sealed class Extends {
+    data class Ref(val ref: String) : Extends()
+    data class Object(val ref: String) : Extends() // For future extensibility
+}

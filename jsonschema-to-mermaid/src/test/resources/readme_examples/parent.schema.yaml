@@ -1,0 +1,7 @@
+$id: parent.schema.yaml
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Parent
+properties:
+  parentField:
+    type: string
+

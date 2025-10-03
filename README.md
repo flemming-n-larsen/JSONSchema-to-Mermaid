@@ -277,6 +277,49 @@ classDiagram
 Notes: Composition keywords like allOf/oneOf/anyOf can be represented as inheritance, composition or alternatives depending on visual preferences. additionalProperties and patternProperties are shown as maps or notes.
 
 
+### 6) Inheritance with `extends`
+
+Input (parent.schema.yaml):
+
+```yaml
+$id: parent.schema.yaml
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Parent
+properties:
+  parentField:
+    type: string
+```
+
+Input (child.schema.yaml):
+
+```yaml
+$id: child.schema.yaml
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Child
+extends:
+  $ref: parent.schema.yaml
+properties:
+  childField:
+    type: integer
+```
+
+Generated Mermaid:
+
+```mermaid
+classDiagram
+  class Parent {
+    +String parentField
+  }
+  class Child {
+    +Integer childField
+    +String parentField
+  }
+  Child <|-- Parent
+```
+
+Notes: The `extends` property allows one schema to inherit from another. The generated diagram shows both the inheritance arrow and merged fields.
+
+
 ### Tips for reading these examples
 - Field types shown (String, Integer, Number, Boolean) are human-friendly mappings from JSON Schema types.
 - Arrays may be shown as X[] or as relationships with multiplicity "*".

@@ -75,6 +75,16 @@ object MermaidGenerator {
             val className = getClassName(schemaFile)
             ensureClassEntry(classProps, className)
 
+            // Add inheritance arrow if extends is present
+            val extends = schemaFile.schema.extends
+            if (extends != null) {
+                val parentClassName = when (extends) {
+                    is jsonschema_to_mermaid.jsonschema.Extends.Ref -> refToClassName(extends.ref)
+                    is jsonschema_to_mermaid.jsonschema.Extends.Object -> refToClassName(extends.ref)
+                }
+                relations.add("$className <|-- $parentClassName")
+            }
+
             schemaFile.schema.properties?.forEach { (pname, prop) ->
                 // prioritize composition-based handling
                 if (handleCompositionKeywords(className, pname, prop, relations)) return@forEach

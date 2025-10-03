@@ -74,4 +74,18 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         mermaid shouldContain "class Paypal"
         mermaid shouldContain "paymentMethod"
     }
+
+    test("Extends/inheritance generates correct Mermaid inheritance arrow and fields") {
+        val schemas = SchemaFilesReader.readSchemas(setOf(
+            resourcePath("/readme_examples/child.schema.yaml"),
+            resourcePath("/readme_examples/parent.schema.yaml")
+        ))
+        val mermaid = MermaidGenerator.generate(schemas)
+
+        mermaid shouldContain "class Child"
+        mermaid shouldContain "class Parent"
+        mermaid shouldContain "Child <|-- Parent"
+        mermaid shouldContain "+Integer childField"
+        mermaid shouldContain "+String parentField"
+    }
 })
