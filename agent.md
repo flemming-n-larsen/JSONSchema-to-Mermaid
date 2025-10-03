@@ -34,21 +34,24 @@ Quick usage (existing repo)
 
   - Build the project:
 
-```bash
+```shell
 ./gradlew :jsonschema-to-mermaid:build
 ```
 
-  - Run using the generated script (recommended after `build`):
+  - Run using the packaged fat JAR (recommended during development):
 
-```bash
-# after a successful build, run the generated script and redirect stdout
-jsonschema-to-mermaid/build/scripts/jsonschema-to-mermaid src/main/resources/bookstore/bookstore.schema.json bookstore.mmd > bookstore.mmd
+```shell
+java -jar jsonschema-to-mermaid/build/libs/jsonschema-to-mermaid.jar src/main/resources/bookstore/bookstore.schema.json > bookstore.mmd
 ```
+
+  (Alternatively, you can pass a destination path as the second argument; the CLI prints the Mermaid to stdout by default.)
+
+  - Note about the generated start script: the script at `jsonschema-to-mermaid/build/scripts/jsonschema-to-mermaid` is the distribution start script and assumes a distribution layout where libraries live under `lib/`. If you run the script directly from the build tree without creating the distribution, it may fail to find its jars and report a "Could not find or load main class" error. To use the script as-is, create the distribution first (for example `./gradlew :jsonschema-to-mermaid:installDist`) and run the script from the generated distribution directory.
 
   - Or run via Gradle (the CLI still prints to stdout; supply a dest arg then redirect):
 
-```bash
-./gradlew :jsonschema-to-mermaid:run --args="src/main/resources/bookstore/bookstore.schema.json bookstore.mmd" > bookstore.mmd
+```shell
+./gradlew :jsonschema-to-mermaid:run --args="src/main/resources/bookstore/bookstore.schema.json" > bookstore.mmd
 ```
 
 Minimal expected Mermaid example
@@ -103,14 +106,15 @@ Contributor first-steps checklist (quick)
 
 1. Fork & clone, then run the unit tests:
 
-```bash
+```shell
 ./gradlew :jsonschema-to-mermaid:test
 ```
 
 2. Run a quick CLI conversion of the sample schema and verify output contains `class Book` or expected tokens:
 
-```bash
-./gradlew :jsonschema-to-mermaid:run --args="src/main/resources/bookstore/bookstore.schema.json bookstore.mmd" > /tmp/bookstore.mmd
+```shell
+# Using the fat JAR produced by the build (recommended)
+java -jar jsonschema-to-mermaid/build/libs/jsonschema-to-mermaid.jar src/main/resources/bookstore/bookstore.schema.json > /tmp/bookstore.mmd
 # then inspect /tmp/bookstore.mmd
 ```
 
