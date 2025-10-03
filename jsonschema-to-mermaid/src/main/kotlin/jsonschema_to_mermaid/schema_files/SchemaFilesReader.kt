@@ -18,9 +18,15 @@ object SchemaFilesReader {
     private val yaml = Yaml()
 
     fun readSchemas(source: Set<Path>): List<SchemaFileInfo> {
-        return collectAllFiles(source).map { filepath ->
-            val schema = readSchema(filepath)
-            SchemaFileInfo(filepath.name, schema)
+        return collectAllFiles(source).mapNotNull { filepath ->
+            try {
+                val schema = readSchema(filepath)
+                SchemaFileInfo(filepath.name, schema)
+            } catch (e: Exception) {
+                // Log the problem and skip this file rather than failing the whole run
+                System.err.println("Warning: skipping '${filepath}': ${e.message}")
+                null
+            }
         }
     }
 
@@ -61,8 +67,13 @@ object SchemaFilesReader {
     private fun readYamlSchema(path: Path): Schema {
         try {
             FileReader(path.toFile()).use { fileReader ->
-                val yaml: Map<String, Any> = yaml.load(fileReader)
-                return gson.fromJson(gson.toJson(yaml), Schema::class.java)
+                val yamlObj: Any? = yaml.load(fileReader)
+                if (yamlObj !is Map<*, *>) {
+                    throw FileFormatException("YAML root is not a mapping for file: ${path.fileName}")
+                }
+                @Suppress("UNCHECKED_CAST")
+                val yamlMap = yamlObj as Map<String, Any>
+                return gson.fromJson(gson.toJson(yamlMap), Schema::class.java)
             }
         } catch (e: ClassCastException) {
             throw FileFormatException("Could not parse YAML schema file", e)
