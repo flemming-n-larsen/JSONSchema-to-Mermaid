@@ -16,17 +16,16 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     // Command-line (CLI) support
-    // Use canonical Maven coordinates for Clikt 5.x (correct groupId)
-    implementation("com.github.ajalt.clikt:clikt:5.0.3")
+    implementation("com.github.ajalt.clikt", "clikt", "5.0.3")
 
     // JSONSchema
-    implementation("net.pwall.json:json-kotlin-schema:0.47")
+    implementation("net.pwall.json", "json-kotlin-schema", "0.47")
 
     // Gson for JSON parsing
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson", "gson", "2.10.1")
 
     // SnakeYAML for YAML parsing
-    implementation("org.yaml:snakeyaml:2.2")
+    implementation("org.yaml", "snakeyaml", "2.2")
 
     // Testing
 
@@ -34,7 +33,7 @@ dependencies {
     testImplementation(kotlin("test"))
 
     // Kotest (Kotlin testing)
-    testImplementation("io.kotest", "kotest-runner-junit5", "5.6.2")
+    testImplementation("io.kotest", "kotest-runner-junit5", "6.0.3")
 }
 
 application {
