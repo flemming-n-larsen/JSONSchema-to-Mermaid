@@ -16,7 +16,8 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     // Command-line (CLI) support
-    implementation("com.github.ajalt.clikt", "clikt", "3.5.2")
+    // Use canonical Maven coordinates for Clikt 5.x (correct groupId)
+    implementation("com.github.ajalt.clikt:clikt:5.0.3")
 
     // JSONSchema
     implementation("net.pwall.json:json-kotlin-schema:0.47")
