@@ -16,6 +16,14 @@ object App : CliktCommand() {
 
     override fun run() {
         val output = MermaidGenerator.generate(SchemaFilesReader.readSchemas(source))
+        // Write output to the destination file so the CLI example that passes a dest path works as expected.
+        try {
+            dest.toFile().writeText(output)
+        } catch (e: Exception) {
+            echo("Failed to write output to $dest: ${'$'}{e.message}")
+            throw e
+        }
+        // Also print to stdout for convenience (keeps previous behavior compatible with redirection).
         print(output)
     }
 }
