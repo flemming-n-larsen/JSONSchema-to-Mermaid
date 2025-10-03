@@ -2,8 +2,8 @@ val artifactBaseName = "jsonschema-to-mermaid"
 
 plugins {
     application
-    kotlin("jvm") version "1.8.21"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    kotlin("jvm") version "2.2.0"
+    id("com.gradleup.shadow") version "9.2.2"
 }
 
 repositories {
