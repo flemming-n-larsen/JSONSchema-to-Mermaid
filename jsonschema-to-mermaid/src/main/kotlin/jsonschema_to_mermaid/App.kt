@@ -29,40 +29,41 @@ class App : CliktCommand() {
         }
 
         // Diagnostic: print resolved source paths with details
-        echo("Resolved source paths:")
+        // print diagnostics to stderr so stdout can be used for the Mermaid diagram
+        echo("Resolved source paths:", err = true)
         sources.forEach { p ->
             val abs = try { p.toAbsolutePath().toString() } catch (_: Exception) { "<invalid>" }
-            echo(" - '$p' -> abs='$abs', exists=${p.toFile().exists()}, isDirectory=${p.toFile().isDirectory()}")
+            echo(" - '$p' -> abs='$abs', exists=${p.toFile().exists()}, isDirectory=${p.toFile().isDirectory()}", err = true)
         }
 
         val schemas = try {
             SchemaFilesReader.readSchemas(sources)
         } catch (e: Exception) {
-            echo("Failed to read schemas: ${e.message}")
+            echo("Failed to read schemas: ${e.message}", err = true)
             throw e
         }
 
         // Safely handle nullable filenames when printing diagnostics
-        echo("Read ${schemas.size} schema(s): ${schemas.joinToString(",") { it.filename ?: "<unknown>" }}")
+        echo("Read ${schemas.size} schema(s): ${schemas.joinToString(",") { it.filename ?: "<unknown>" }}", err = true)
 
         val output = try {
             MermaidGenerator.generate(schemas)
         } catch (e: Exception) {
-            echo("Failed to generate Mermaid: ${e.message}")
+            echo("Failed to generate Mermaid: ${e.message}", err = true)
             e.printStackTrace()
             throw e
-        }
+         }
 
         // If a destination file was provided, write output to it.
         if (actualDest != null) {
             try {
                 actualDest.toFile().writeText(output)
             } catch (e: Exception) {
-                echo("Failed to write output to $actualDest: ${e.message}")
+                echo("Failed to write output to $actualDest: ${e.message}", err = true)
                 throw e
-            }
-        }
-        // Always print to stdout for convenience.
-        print(output)
-    }
+             }
+         }
+         // Always print to stdout for convenience.
+         print(output)
+     }
 }

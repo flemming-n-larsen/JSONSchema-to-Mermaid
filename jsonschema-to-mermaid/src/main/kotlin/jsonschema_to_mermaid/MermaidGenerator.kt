@@ -31,7 +31,7 @@ object MermaidGenerator {
     ) {
         schemas.forEach { file ->
             file.schema.definitions?.forEach { (defName, defSchema) ->
-                val className = defName.replaceFirstChar { it.uppercaseChar().toString() }
+                val className = sanitizeName(defName)
                 ensureClassEntry(classProps, className)
 
                 defSchema.properties?.forEach { (pname, pprop) ->
@@ -81,8 +81,9 @@ object MermaidGenerator {
                 val parentClassName = when (extends) {
                     is jsonschema_to_mermaid.jsonschema.Extends.Ref -> refToClassName(extends.ref)
                     is jsonschema_to_mermaid.jsonschema.Extends.Object -> refToClassName(extends.ref)
+                    else -> null
                 }
-                relations.add("$className <|-- $parentClassName")
+                if (parentClassName != null) relations.add("$className <|-- $parentClassName")
             }
 
             schemaFile.schema.properties?.forEach { (pname, prop) ->
@@ -107,7 +108,8 @@ object MermaidGenerator {
             val refs = prop.allOf.filter { it.`$ref` != null }
             if (refs.isNotEmpty()) {
                 refs.forEach { r ->
-                    relations.add(formatRelation(className, refToClassName(r.`$ref`!!), "1", "1", pname, "-->"))
+                    // we filtered refs to those where `$ref` is non-null, so use it directly
+                    relations.add(formatRelation(className, refToClassName(r.`$ref`), "1", "1", pname, "-->"))
                 }
                 return true
             }
@@ -126,14 +128,12 @@ object MermaidGenerator {
         if (!prop.oneOf.isNullOrEmpty()) {
             prop.oneOf.forEach { member ->
                 when {
-                    member.`$ref` != null -> relations.add(formatRelation(className, refToClassName(member.`$ref`!!), "1", "1", "$pname (oneOf)", "-->"))
+                    member.`$ref` != null -> relations.add(formatRelation(className, refToClassName(member.`$ref`), "1", "1", "$pname (oneOf)", "-->"))
                     member.type == "object" -> {
-                        val target = pname.replaceFirstChar { it.uppercaseChar().toString() } + "Option"
+                        val target = sanitizeName(pname) + "-option"
                         ensureClassEntry(classProps, target)
                         val subProps = member.properties ?: emptyMap()
-                        subProps.forEach { (ipname, iprop) ->
-                            mapPropertyToClass(iprop, ipname, classProps[target]!!, prefs)
-                        }
+                        subProps.forEach { (ipname, iprop) -> mapPropertyToClass(iprop, ipname, classProps[target]!!, prefs) }
                         relations.add(formatRelation(className, target, "1", "1", "$pname (oneOf)", "-->"))
                     }
                 }
@@ -144,14 +144,12 @@ object MermaidGenerator {
         if (!prop.anyOf.isNullOrEmpty()) {
             prop.anyOf.forEach { member ->
                 when {
-                    member.`$ref` != null -> relations.add(formatRelation(className, refToClassName(member.`$ref`!!), "1", "1", "$pname (anyOf)", "-->"))
+                    member.`$ref` != null -> relations.add(formatRelation(className, refToClassName(member.`$ref`), "1", "1", "$pname (anyOf)", "-->"))
                     member.type == "object" -> {
-                        val target = pname.replaceFirstChar { it.uppercaseChar().toString() } + "Option"
+                        val target = sanitizeName(pname) + "-option"
                         ensureClassEntry(classProps, target)
                         val subProps = member.properties ?: emptyMap()
-                        subProps.forEach { (ipname, iprop) ->
-                            mapPropertyToClass(iprop, ipname, classProps[target]!!, prefs)
-                        }
+                        subProps.forEach { (ipname, iprop) -> mapPropertyToClass(iprop, ipname, classProps[target]!!, prefs) }
                         relations.add(formatRelation(className, target, "1", "1", "$pname (anyOf)", "-->"))
                     }
                 }
@@ -172,10 +170,7 @@ object MermaidGenerator {
         prefs: Preferences
     ) {
         when {
-            prop.`$ref` != null -> {
-                val target = refToClassName(prop.`$ref`)
-                relations.add(formatRelation(className, target, "1", "1", pname, "-->"))
-            }
+            prop.`$ref` != null -> relations.add(formatRelation(className, refToClassName(prop.`$ref`), "1", "1", pname, "-->"))
             prop.type == "array" && prefs.arraysAsRelation -> handleTopLevelArray(schemaFile, className, pname, prop, classProps, relations, prefs)
             prop.type == "object" -> handleTopLevelObject(schemaFile, className, pname, prop, classProps, relations, prefs)
             else -> classProps[className]!!.add(formatField(pname, prop, prefs))
@@ -193,17 +188,14 @@ object MermaidGenerator {
     ) {
         val items = prop.items
         if (items?.`$ref` != null) {
-            val target = refToClassName(items.`$ref`)
-            relations.add(formatRelation(className, target, "1", "*", pname, "-->"))
+            relations.add(formatRelation(className, refToClassName(items.`$ref`), "1", "*", pname, "-->"))
         } else if (items?.type == "object") {
             val base = if (pname.endsWith("s")) pname.dropLast(1) else pname
             val parent = className.trim().ifEmpty { getClassName(schemaFile) }
-            val target = parent + base.replaceFirstChar { it.uppercaseChar().toString() }
+            val target = parent + sanitizeName(base).replaceFirstChar { it.uppercaseChar() }
             ensureClassEntry(classProps, target)
             val itemProps = items.properties ?: emptyMap()
-            itemProps.forEach { (ipname, iprop) ->
-                mapPropertyToClass(iprop, ipname, classProps[target]!!, prefs)
-            }
+            itemProps.forEach { (ipname, iprop) -> mapPropertyToClass(iprop, ipname, classProps[target]!!, prefs) }
             relations.add(formatRelation(className, target, "1", "*", pname, "-->"))
         } else {
             // primitive array -> render as field type[]
@@ -220,12 +212,10 @@ object MermaidGenerator {
         relations: MutableList<String>,
         prefs: Preferences
     ) {
-        val target = pname.replaceFirstChar { it.uppercaseChar().toString() }
+        val target = sanitizeName(pname)
         ensureClassEntry(classProps, target)
         val subProps = prop.properties ?: emptyMap()
-        subProps.forEach { (ipname, iprop) ->
-            mapPropertyToClass(iprop, ipname, classProps[target]!!, prefs)
-        }
+        subProps.forEach { (ipname, iprop) -> mapPropertyToClass(iprop, ipname, classProps[target]!!, prefs) }
         val multiplicity = if (schemaFile.schema.required?.contains(pname) == true) "1" else "0..1"
         relations.add(formatRelation(className, target, multiplicity, "1", pname, "-->"))
     }
@@ -239,32 +229,24 @@ object MermaidGenerator {
         val fromPart = if (fromMult != null) "\"$fromMult\" " else ""
         val toPart = if (toMult != null) " \"$toMult\"" else ""
         // if arrow is aggregation (o--), we don't print multiplicities by default unless provided
+        // Use sanitized/unquoted class names (refToClassName/getClassName already sanitize names)
         return "$fromClass $fromPart$arrow$toPart $toClass : $label"
     }
 
     // map a single property into class property string
     private fun mapPropertyToClass(prop: Property, name: String, targetProps: MutableList<String>, prefs: Preferences) {
         when {
-            prop.`$ref` != null -> {
-                val refName = refToClassName(prop.`$ref`)
-                targetProps.add(formatInlineField(name, refName, prefs))
-            }
+            prop.`$ref` != null -> targetProps.add(formatInlineField(name, refToClassName(prop.`$ref`), prefs))
             prop.type == "array" -> {
                 val items = prop.items
-                if (!prefs.arraysAsRelation) {
-                    targetProps.add(formatArrayField(name, items, prefs))
-                } else {
-                    // arrays as relation will generally be represented by a relation; if primitive, still show inline
-                    if (items?.type != "object" && items?.`$ref` == null) targetProps.add(formatArrayField(name, items, prefs))
-                }
+                if (!prefs.arraysAsRelation) targetProps.add(formatArrayField(name, items, prefs))
+                else if (items?.type != "object" && items?.`$ref` == null) targetProps.add(formatArrayField(name, items, prefs))
             }
             prop.type == "object" -> {
-                val target = name.replaceFirstChar { it.uppercaseChar().toString() }
+                val target = sanitizeName(name)
                 targetProps.add(formatInlineField(name, target, prefs))
             }
-            else -> {
-                targetProps.add(formatField(name, prop, prefs))
-            }
+            else -> targetProps.add(formatField(name, prop, prefs))
         }
     }
 
@@ -322,11 +304,75 @@ object MermaidGenerator {
         }
     }
 
-    private fun refToClassName(ref: String): String {
+    private fun refToClassName(ref: String?): String {
+        if (ref == null) return "unknown"
         var rn = ref
+        // If there's a fragment (#...), prefer the fragment content (internal ref like #/definitions/Foo)
+        val hashIndex = rn.indexOf('#')
+        if (hashIndex >= 0) {
+            val frag = rn.substring(hashIndex + 1)
+            rn = if (frag.isNotBlank()) frag else rn.substring(0, hashIndex)
+        }
+        // keep last path segment if path-like
         val last = rn.lastIndexOf('/')
         if (last >= 0) rn = rn.substring(last + 1)
-        return rn.replaceFirstChar { it.uppercaseChar().toString() }
+        return sanitizeName(rn)
+    }
+
+    // sanitize arbitrary string into a valid class identifier (no spaces/dots etc.)
+    private fun sanitizeName(name: String?): String {
+        if (name == null) return "Unknown"
+        var rn = name.trim()
+        if (rn.isEmpty()) return "Unknown"
+        // if it's a path-like name, take last segment
+        val lastSlash = rn.lastIndexOf('/')
+        if (lastSlash >= 0) rn = rn.substring(lastSlash + 1)
+        // drop common file extension after first '.' to avoid things like 'file.schema.yaml'
+        val dotIndex = rn.indexOf('.')
+        if (dotIndex >= 0) rn = rn.substring(0, dotIndex)
+        // If the name is a single alphanumeric token and already contains uppercase letters,
+        // assume it's already CamelCase/PascalCase and preserve its capitalization (just strip non-alphanumerics).
+        if (rn.matches(Regex("^[A-Za-z0-9]+$")) && rn.any { it.isUpperCase() }) {
+            val cleaned = rn.replace(Regex("[^A-Za-z0-9]"), "")
+            // if the token already contains camelCase/PascalCase boundaries, split on those boundaries
+            val boundaryRegex = Regex("(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
+            if (boundaryRegex.containsMatchIn(cleaned)) {
+                val parts = cleaned.split(boundaryRegex)
+                val joined = parts.filter { it.isNotBlank() }
+                    .joinToString(separator = "") { p -> p.lowercase().replaceFirstChar { it.uppercaseChar() } }
+                return joined
+            }
+            return cleaned.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        }
+        // replace non-alphanumeric characters with a space to split into words
+        rn = rn.replace(Regex("[^A-Za-z0-9]+"), " ")
+        // split into parts, capitalize each and join without separator -> PascalCase
+        val parts = rn.split(Regex("\\s+"))
+        val joined = parts.filter { it.isNotBlank() }
+            .joinToString(separator = "") { part ->
+                val lower = part.lowercase()
+                lower.replaceFirstChar { it.uppercaseChar() }
+            }
+        // Fallback
+        if (joined.isBlank()) return "Unknown"
+        return joined.replace(Regex("[^A-Za-z0-9]"), "")
+    }
+
+    // Prefer titles: robustly parse CamelCase, snake-case, hyphenated, or space-separated titles into PascalCase.
+    private fun sanitizeTitle(title: String?): String {
+        if (title == null) return "Unknown"
+        val t = title.trim()
+        if (t.isEmpty()) return "Unknown"
+        // Try to extract word tokens from CamelCase or other forms
+        val wordRegex = Regex("[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\\d+")
+        val matches = wordRegex.findAll(t).map { it.value }.toList()
+        val parts = if (matches.isNotEmpty()) matches else t.replace(Regex("[^A-Za-z0-9]+"), " ").split(Regex("\\s+"))
+        val joined = parts.filter { it.isNotBlank() }
+            .joinToString(separator = "") { p ->
+                val lower = p.lowercase()
+                lower.replaceFirstChar { it.uppercaseChar() }
+            }
+        return if (joined.isBlank()) "Unknown" else joined.replace(Regex("[^A-Za-z0-9]"), "")
     }
 
     // --- Output builder ---
@@ -344,9 +390,12 @@ object MermaidGenerator {
     }
 
     private fun getClassName(schemaData: SchemaFileInfo): String =
-        (schemaData.schema.title
-            ?: getClassNameFromFilePath(schemaData.filename)
-            ?: getClassNameFromId(schemaData.schema)).trim()
+        // Prefer schema title when present, sanitized via sanitizeTitle so we preserve CamelCase like ProductCatalog
+        (if (!schemaData.schema.title.isNullOrBlank()) sanitizeTitle(schemaData.schema.title) else sanitizeName(
+            schemaData.schema.title
+                ?: getClassNameFromFilePath(schemaData.filename)
+                ?: getClassNameFromId(schemaData.schema)
+        )).trim()
 
     private fun getClassNameFromFilePath(filepath: String?): String? {
         var classname = filepath
@@ -359,8 +408,7 @@ object MermaidGenerator {
     }
 
     private fun getClassNameFromId(schema: Schema): String {
-        var className =
-            schema.`$id`?.trim() ?: throw IllegalStateException("jsonschema is missing title and \$id fields")
+        var className = schema.`$id`?.trim() ?: throw IllegalStateException("jsonschema is missing title and \$id fields")
         val lastIndex = className.lastIndexOf("/")
         if (lastIndex >= 0) {
             className = className.substring(lastIndex + 1)
