@@ -1,2 +1,5 @@
 - Add unit tests that assert presence of certain Mermaid nodes/edges when given specific schema snippets.
 - Add an integration smoke test that runs the CLI on `src/test/resources/bookstore` and verifies non-empty output.
+- Move more presentation decisions to a small Config/Preferences DTO to let the CLI toggle array handling or required notation.
+- Add stricter snapshot tests (exact equality) for the README examples.
+- Tweak the class naming heuristics further (e.g., singularization library for array item naming).
