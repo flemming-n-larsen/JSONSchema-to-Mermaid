@@ -13,114 +13,105 @@ data class Preferences(
 object MermaidGenerator {
 
     fun generate(schemas: Collection<SchemaFileInfo>, prefs: Preferences = Preferences()): String {
-        val classes = linkedMapOf<String, MutableList<String>>()
+        val classProps = linkedMapOf<String, MutableList<String>>()
         val relations = mutableListOf<String>()
 
-        // process definitions first so refs can reference them
-        schemas.forEach { schemaFile ->
-            schemaFile.schema.definitions?.forEach { (defName, defSchema) ->
-                val className = defName.capitalize()
-                if (!classes.containsKey(className)) {
-                    classes[className] = mutableListOf()
+        processDefinitions(schemas, classProps, prefs)
+        processTopLevelSchemas(schemas, classProps, relations, prefs)
+
+        return buildOutput(classProps, relations)
+    }
+
+    // --- Processing helpers ---
+    private fun processDefinitions(schemas: Collection<SchemaFileInfo>, classProps: MutableMap<String, MutableList<String>>, prefs: Preferences) {
+        schemas.forEach { file ->
+            file.schema.definitions?.forEach { (defName, defSchema) ->
+                val className = defName.replaceFirstChar { it.uppercaseChar().toString() }
+                if (!classProps.containsKey(className)) {
+                    classProps[className] = mutableListOf()
                     defSchema.properties?.forEach { (pname, pprop) ->
-                        // map properties for definition
-                        mapPropertyToClass(pprop, pname, classes[className]!!, className, defSchema.required ?: listOf(), prefs, schemas)
+                        mapPropertyToClass(pprop, pname, classProps[className]!!, className, defSchema.required ?: listOf(), prefs)
                     }
                 }
             }
         }
+    }
 
-        // process top-level schemas
+    private fun processTopLevelSchemas(
+        schemas: Collection<SchemaFileInfo>,
+        classProps: MutableMap<String, MutableList<String>>,
+        relations: MutableList<String>,
+        prefs: Preferences
+    ) {
         schemas.forEach { schemaFile ->
             val className = getClassName(schemaFile)
-            if (!classes.containsKey(className)) {
-                classes[className] = mutableListOf()
-            }
+            if (!classProps.containsKey(className)) classProps[className] = mutableListOf()
+
             schemaFile.schema.properties?.forEach { (pname, prop) ->
-                // handle nested objects, arrays and refs by creating classes and relations
                 when {
                     prop.`$ref` != null -> {
-                        val target = refToClassName(prop.`$ref`!!)
-                        relations.add("$className \"1\" --> \"1\" $target : $pname")
+                        val target = refToClassName(prop.`$ref`)
+                        relations.add(formatRelation(className, target, "1", pname))
                     }
                     prop.type == "array" && prefs.arraysAsRelation -> {
-                        // if items is ref
                         val items = prop.items
                         if (items?.`$ref` != null) {
-                            val target = refToClassName(items.`$ref`!!)
-                            relations.add("$className \"1\" --> \"*\" $target : $pname")
+                            val target = refToClassName(items.`$ref`)
+                            relations.add(formatRelation(className, target, "*", pname))
                         } else if (items?.type == "object") {
-                            val target = (className + pname.capitalize() + "Item")
-                            // create item class
-                            if (!classes.containsKey(target)) classes[target] = mutableListOf()
-                            items.properties?.forEach { (ipname, iprop) ->
-                                mapPropertyToClass(iprop, ipname, classes[target]!!, target, items?.properties?.keys?.toList() ?: listOf(), prefs, schemas)
+                            val target = className + pname.replaceFirstChar { it.uppercaseChar().toString() } + "Item"
+                            if (!classProps.containsKey(target)) classProps[target] = mutableListOf()
+                            val itemProps = items.properties ?: emptyMap()
+                            itemProps.forEach { (ipname, iprop) ->
+                                mapPropertyToClass(iprop, ipname, classProps[target]!!, target, itemProps.keys.toList(), prefs)
                             }
-                            relations.add("$className \"1\" --> \"*\" $target : $pname")
+                            relations.add(formatRelation(className, target, "*", pname))
                         } else {
                             // primitive array -> render as field type[]
-                            classes[className]!!.add(formatArrayField(pname, items, schemaFile.schema.required ?: listOf(), prefs))
+                            classProps[className]!!.add(formatArrayField(pname, items, schemaFile.schema.required ?: listOf(), prefs))
                         }
                     }
                     prop.type == "object" -> {
-                        // extract nested object into its own class
-                        val target = className + pname.capitalize()
-                        if (!classes.containsKey(target)) classes[target] = mutableListOf()
-                        prop.properties?.forEach { (ipname, iprop) ->
-                            mapPropertyToClass(iprop, ipname, classes[target]!!, target, prop.properties?.keys?.toList() ?: listOf(), prefs, schemas)
+                        val target = className + pname.replaceFirstChar { it.uppercaseChar().toString() }
+                        if (!classProps.containsKey(target)) classProps[target] = mutableListOf()
+                        val subProps = prop.properties ?: emptyMap()
+                        subProps.forEach { (ipname, iprop) ->
+                            mapPropertyToClass(iprop, ipname, classProps[target]!!, target, subProps.keys.toList(), prefs)
                         }
                         val multiplicity = if (schemaFile.schema.required?.contains(pname) == true) "\"1\"" else "\"0..1\""
                         relations.add("$className $multiplicity --> \"1\" $target : $pname")
                     }
                     else -> {
-                        // simple property
-                        classes[className]!!.add(formatField(pname, prop, schemaFile.schema.required ?: listOf(), prefs))
+                        classProps[className]!!.add(formatField(pname, prop, schemaFile.schema.required ?: listOf(), prefs))
                     }
                 }
             }
         }
+    }
 
-        // Build output
-        val sb = StringBuilder()
-        sb.append("classDiagram\n")
-        classes.forEach { (className, props) ->
-            sb.append("  class $className {")
-            if (props.isNotEmpty()) {
-                sb.append('\n')
-                props.forEach { sb.append("    $it\n") }
-                sb.append("  }")
-            }
-            sb.append('\n')
-        }
-        if (relations.isNotEmpty()) sb.append('\n')
-        relations.forEach { sb.append("  $it\n") }
-
-        return sb.toString()
+    private fun formatRelation(fromClass: String, toClass: String, toMult: String, label: String): String {
+        // from-side multiplicity is always 1 in current usage
+        return "$fromClass 1 --> $toMult $toClass : $label"
     }
 
     // map a single property into class property string
-    private fun mapPropertyToClass(prop: Property, name: String, targetProps: MutableList<String>, parentClassName: String, requiredKeys: List<String>, prefs: Preferences, schemas: Collection<SchemaFileInfo>) {
+    private fun mapPropertyToClass(prop: Property, name: String, targetProps: MutableList<String>, parentClassName: String, requiredKeys: List<String>, prefs: Preferences) {
         when {
             prop.`$ref` != null -> {
-                // reference field - create relation instead of inline field
-                val refName = refToClassName(prop.`$ref`!!)
-                // we won't add inline field for refs when mapping into separate class; caller may handle relations
+                val refName = refToClassName(prop.`$ref`)
                 targetProps.add(formatInlineField(name, refName, requiredKeys, prefs))
             }
             prop.type == "array" -> {
                 val items = prop.items
                 if (!prefs.arraysAsRelation) {
-                    // render as type[] inline
                     targetProps.add(formatArrayField(name, items, requiredKeys, prefs))
                 } else {
-                    // arrays as relation will be handled by parent generator; here just produce inline if primitive
+                    // arrays as relation will generally be represented by a relation; if primitive, still show inline
                     if (items?.type != "object" && items?.`$ref` == null) targetProps.add(formatArrayField(name, items, requiredKeys, prefs))
                 }
             }
             prop.type == "object" -> {
-                // create nested class
-                val target = parentClassName + name.capitalize()
-                // ensure created elsewhere by caller; here we just add a field referencing it
+                val target = parentClassName + name.replaceFirstChar { it.uppercaseChar().toString() }
                 targetProps.add(formatInlineField(name, target, requiredKeys, prefs))
             }
             else -> {
@@ -136,29 +127,17 @@ object MermaidGenerator {
 
     private fun formatField(name: String, prop: Property?, requiredKeys: List<String>, prefs: Preferences): String {
         val t = prop?.format ?: prop?.type
-        val kotlinType = when (t) {
-            "integer" -> "Integer"
-            "number" -> "Number"
-            "boolean" -> "Boolean"
-            "string" -> "String"
-            else -> t?.capitalize() ?: "Object"
-        }
+        val kotlinType = primitiveTypeName(t)
         val prefix = if (prefs.showRequiredWithPlus && requiredKeys.contains(name)) "+" else ""
         return when {
             prop == null -> "$prefix$kotlinType $name"
             prop.type == "array" && prop.items != null && !prefs.arraysAsRelation -> {
                 val itemType = prop.items.format ?: prop.items.type
-                val mapped = when (itemType) {
-                    "integer" -> "Integer"
-                    "number" -> "Number"
-                    "boolean" -> "Boolean"
-                    "string" -> "String"
-                    else -> itemType?.capitalize() ?: "Object"
-                }
+                val mapped = primitiveTypeName(itemType)
                 "$prefix$mapped[] $name"
             }
             prop.`$ref` != null -> {
-                val refName = refToClassName(prop.`$ref`!!)
+                val refName = refToClassName(prop.`$ref`)
                 "$prefix$refName $name"
             }
             else -> "$prefix$kotlinType $name"
@@ -167,22 +146,41 @@ object MermaidGenerator {
 
     private fun formatArrayField(name: String, items: Property?, requiredKeys: List<String>, prefs: Preferences): String {
         val itemType = items?.format ?: items?.type
-        val mapped = when (itemType) {
+        val mapped = primitiveTypeName(itemType)
+        val prefix = if (prefs.showRequiredWithPlus && requiredKeys.contains(name)) "+" else ""
+        return "$prefix$mapped[] $name"
+    }
+
+    private fun primitiveTypeName(typeOrFormat: String?): String {
+        return when (typeOrFormat) {
             "integer" -> "Integer"
             "number" -> "Number"
             "boolean" -> "Boolean"
             "string" -> "String"
-            else -> itemType?.capitalize() ?: "Object"
+            null -> "Object"
+            else -> typeOrFormat.replaceFirstChar { it.uppercaseChar().toString() }
         }
-        val prefix = if (prefs.showRequiredWithPlus && requiredKeys.contains(name)) "+" else ""
-        return "$prefix$mapped[] $name"
     }
 
     private fun refToClassName(ref: String): String {
         var rn = ref
         val last = rn.lastIndexOf('/')
         if (last >= 0) rn = rn.substring(last + 1)
-        return rn.capitalize()
+        return rn.replaceFirstChar { it.uppercaseChar().toString() }
+    }
+
+    // --- Output builder ---
+    private fun buildOutput(classProps: Map<String, List<String>>, relations: List<String>): String {
+        val sb = StringBuilder()
+        sb.append("classDiagram\n")
+        classProps.forEach { (className, props) ->
+            sb.append("  class $className {\n")
+            props.forEach { sb.append("    $it\n") }
+            sb.append("  }\n")
+        }
+        if (relations.isNotEmpty()) sb.append('\n')
+        relations.forEach { sb.append("  $it\n") }
+        return sb.toString()
     }
 
     private fun getClassName(schemaData: SchemaFileInfo): String =
@@ -194,7 +192,7 @@ object MermaidGenerator {
         var classname = filepath
         classname?.indexOf(".")?.let { index ->
             if (index > 0) {
-                classname = classname?.substring(0, index)
+                classname = classname.substring(0, index)
             }
         }
         return classname
