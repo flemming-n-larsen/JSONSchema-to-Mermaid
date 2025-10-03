@@ -19,6 +19,11 @@ dependencies {
     // JSONSchema
     implementation("net.pwall.json:json-kotlin-schema:0.47")
 
+    // Gson for JSON parsing
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // SnakeYAML for YAML parsing
+    implementation("org.yaml:snakeyaml:2.2")
 
     // Testing
 
