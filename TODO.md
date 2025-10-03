@@ -1,0 +1,2 @@
+- Add unit tests that assert presence of certain Mermaid nodes/edges when given specific schema snippets.
+- Add an integration smoke test that runs the CLI on `src/test/resources/bookstore` and verifies non-empty output.
