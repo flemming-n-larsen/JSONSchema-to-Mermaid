@@ -2,7 +2,7 @@ val artifactBaseName = "jsonschema-to-mermaid"
 
 plugins {
     application
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.2.20"
     id("com.gradleup.shadow") version "9.2.2"
 
     id("com.github.ben-manes.versions") version "0.53.0" // dependencyUpdates task
@@ -19,13 +19,13 @@ dependencies {
     implementation("com.github.ajalt.clikt", "clikt", "5.0.3")
 
     // JSONSchema
-    implementation("net.pwall.json", "json-kotlin-schema", "0.47")
+    implementation("net.pwall.json", "json-kotlin-schema", "0.57")
 
     // Gson for JSON parsing
-    implementation("com.google.code.gson", "gson", "2.10.1")
+    implementation("com.google.code.gson", "gson", "2.13.2")
 
     // SnakeYAML for YAML parsing
-    implementation("org.yaml", "snakeyaml", "2.2")
+    implementation("org.yaml", "snakeyaml", "2.5")
 
     // Testing
 
