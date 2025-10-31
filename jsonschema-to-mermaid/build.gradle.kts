@@ -61,6 +61,22 @@ tasks {
     test {
         useJUnitPlatform()
     }
+
+    register("generateVersionProperties") {
+        val outputDir = file("src/main/resources")
+        val outputFile = file("src/main/resources/version.properties")
+        doLast {
+            if (!outputDir.exists()) {
+                outputDir.mkdirs()
+            }
+            val version = project.version.toString()
+            outputFile.writeText("version=$version\n")
+        }
+    }
+
+    named("processResources") {
+        dependsOn("generateVersionProperties")
+    }
 }
 
 kotlin {

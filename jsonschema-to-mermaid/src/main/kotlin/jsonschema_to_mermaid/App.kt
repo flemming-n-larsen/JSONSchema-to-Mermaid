@@ -9,6 +9,7 @@ import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.path
 import jsonschema_to_mermaid.schema_files.SchemaFilesReader
 import java.nio.file.Path
+import java.util.Properties
 
 fun main(args: Array<String>) = App().main(args)
 
@@ -20,7 +21,18 @@ class App : CliktCommand() {
     // private val root: String? by option("-r", "--root", help = "Use NAME as the root definition")
     // private val noHeader: Boolean by option("--no-header", help = "Suppress the Mermaid header in output").flag(default = false)
     init {
-        versionOption("0.1.0")
+        versionOption(loadVersionFromProperties())
+    }
+
+    private fun loadVersionFromProperties(): String {
+        return try {
+            val props = Properties()
+            val stream = this::class.java.classLoader.getResourceAsStream("version.properties")
+            stream?.use { props.load(it) }
+            props.getProperty("version") ?: "<unknown>"
+        } catch (_: Exception) {
+            "<unknown>"
+        }
     }
 
     override fun run() {
