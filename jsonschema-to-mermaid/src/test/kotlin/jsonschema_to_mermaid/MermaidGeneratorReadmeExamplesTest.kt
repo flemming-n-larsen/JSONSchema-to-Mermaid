@@ -2,6 +2,7 @@ package jsonschema_to_mermaid
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.shouldBe
 import jsonschema_to_mermaid.schema_files.SchemaFilesReader
 import test_util.resourcePath
 
@@ -75,7 +76,7 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         mermaid shouldContain "paymentMethod"
     }
 
-    test("Extends/inheritance generates correct Mermaid inheritance arrow and fields") {
+    test("Extends/inheritance generates correct Mermaid inheritance arrow and hides inherited fields in child") {
         val schemas = SchemaFilesReader.readSchemas(setOf(
             resourcePath("/readme_examples/child.schema.yaml"),
             resourcePath("/readme_examples/parent.schema.yaml")
@@ -84,8 +85,11 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
 
         mermaid shouldContain "class Child"
         mermaid shouldContain "class Parent"
-        mermaid shouldContain "Child <|-- Parent"
+        mermaid shouldContain "Parent <|-- Child"
         mermaid shouldContain "+Integer childField"
         mermaid shouldContain "+String parentField"
+        // Assert parent field not duplicated under Child: count occurrences == 1
+        val parentFieldCount = mermaid.lineSequence().count { it.contains("+String parentField") }
+        parentFieldCount shouldBe 1
     }
 })

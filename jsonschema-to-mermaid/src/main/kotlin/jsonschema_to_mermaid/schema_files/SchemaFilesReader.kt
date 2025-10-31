@@ -86,16 +86,23 @@ object SchemaFilesReader {
         val extends = schema.extends
         if (extends == null) return schema
         val refPath = when (extends) {
-            is jsonschema_to_mermaid.jsonschema.Extends.Ref -> path.parent.resolve(extends.ref)
-            is jsonschema_to_mermaid.jsonschema.Extends.Object -> path.parent.resolve(extends.ref)
+            is Extends.Ref -> path.parent.resolve(extends.ref)
+            is Extends.Object -> path.parent.resolve(extends.ref)
         }
         val baseSchema = readSchema(refPath)
+        // Compute inherited property names: take base's own properties plus its inherited ones, minus any properties
+        // overridden in child
+        val baseOwnProps = baseSchema.properties?.keys ?: emptySet()
+        val baseInherited = baseSchema.inheritedPropertyNames ?: emptyList()
+        val childOwnProps = schema.properties?.keys ?: emptySet()
+        val inheritedForChild = ((baseOwnProps + baseInherited) - childOwnProps).toList().sorted()
         // Merge baseSchema into schema, with schema taking precedence
         return schema.copy(
             properties = mergeMaps(baseSchema.properties, schema.properties),
             required = mergeLists(baseSchema.required, schema.required),
             definitions = mergeMaps(baseSchema.definitions, schema.definitions),
-            // extends is not propagated
+            inheritedPropertyNames = inheritedForChild,
+            // extends is not propagated further (already handled)
         )
     }
 

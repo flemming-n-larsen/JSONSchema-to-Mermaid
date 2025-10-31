@@ -83,10 +83,15 @@ object MermaidGenerator {
                     is jsonschema_to_mermaid.jsonschema.Extends.Object -> refToClassName(extends.ref)
                     else -> null
                 }
-                if (parentClassName != null) relations.add("$className <|-- $parentClassName")
+                if (parentClassName != null) {
+                    relations.add("$parentClassName <|-- $className")
+                }
             }
 
             schemaFile.schema.properties?.forEach { (pname, prop) ->
+                // Skip inherited properties for visual clarity if this schema extends another
+                val inherited = schemaFile.schema.inheritedPropertyNames?.toSet() ?: emptySet()
+                if (inherited.contains(pname)) return@forEach
                 // prioritize composition-based handling
                 if (handleCompositionKeywords(className, pname, prop, relations)) return@forEach
 

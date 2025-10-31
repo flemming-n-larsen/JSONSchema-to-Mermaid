@@ -312,12 +312,11 @@ classDiagram
   }
   class Child {
     +Integer childField
-    +String parentField
   }
-  Child <|-- Parent
+  Parent <|-- Child
 ```
 
-Notes: The `extends` property allows one schema to inherit from another. The generated diagram shows both the inheritance arrow and merged fields.
+Notes: The `extends` property allows one schema to inherit from another. The generated diagram shows the inheritance arrow; inherited fields are not repeated in the child class body for clarity.
 
 
 ### Tips for reading these examples

@@ -11,6 +11,7 @@ data class Schema(
     val required: List<String>? = listOf(),
     val definitions: Map<String, Schema>? = mapOf(),
     val extends: Extends? = null, // New: support for extends
+    val inheritedPropertyNames: List<String>? = null,
 )
 
 // New: Extends data class to support both string and object forms
