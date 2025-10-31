@@ -1,0 +1,9 @@
+$id: grandchild.schema.yaml
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Grandchild
+extends:
+  $ref: child.schema.yaml
+properties:
+  grandchildField:
+    type: boolean
+

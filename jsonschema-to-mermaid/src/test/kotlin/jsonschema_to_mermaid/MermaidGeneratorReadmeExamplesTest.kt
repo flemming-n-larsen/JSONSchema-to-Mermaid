@@ -92,4 +92,31 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         val parentFieldCount = mermaid.lineSequence().count { it.contains("+String parentField") }
         parentFieldCount shouldBe 1
     }
+
+    test("Transitive inheritance hides inherited properties at each level (Parent <- Child <- Grandchild)") {
+        val schemas = SchemaFilesReader.readSchemas(setOf(
+            resourcePath("/readme_examples/grandchild.schema.yaml"),
+            resourcePath("/readme_examples/child.schema.yaml"),
+            resourcePath("/readme_examples/parent.schema.yaml")
+        ))
+        val mermaid = MermaidGenerator.generate(schemas)
+
+        mermaid shouldContain "class Parent"
+        mermaid shouldContain "class Child"
+        mermaid shouldContain "class Grandchild"
+        mermaid shouldContain "Parent <|-- Child"
+        mermaid shouldContain "Child <|-- Grandchild"
+        mermaid shouldContain "+String parentField" // present once overall
+        mermaid shouldContain "+Integer childField" // present in Child only
+        mermaid shouldContain "+Boolean grandchildField" // present in Grandchild only
+
+        // Counts
+        val parentFieldCount = mermaid.lineSequence().count { it.contains("+String parentField") }
+        val childFieldCount = mermaid.lineSequence().count { it.contains("+Integer childField") }
+        val grandchildFieldCount = mermaid.lineSequence().count { it.contains("+Boolean grandchildField") }
+
+        parentFieldCount shouldBe 1
+        childFieldCount shouldBe 1
+        grandchildFieldCount shouldBe 1
+    }
 })
