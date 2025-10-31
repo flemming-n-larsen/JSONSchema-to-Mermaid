@@ -9,53 +9,49 @@ import test_util.resourcePath
 
 class MermaidGeneratorReadmeExamplesTest : FunSpec({
 
-    test("Person JSON example generates expected class and fields with correct required markers") {
+    test("Person JSON example generates required '+' and optional cardinality [0..1]") {
         val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/person.schema.json")))
         val mermaid = MermaidGenerator.generate(schemas)
-
         mermaid shouldContain "class Person"
         mermaid shouldContain "+Integer id" // required
         mermaid shouldContain "+String name" // required
-        mermaid shouldContain "String email" // optional (no +)
-        mermaid shouldContain "Boolean isActive" // optional (no +)
+        mermaid shouldContain "String email [0..1]" // optional annotated
+        mermaid shouldContain "Boolean isActive [0..1]" // optional annotated
         mermaid shouldNotContain "+String email"
         mermaid shouldNotContain "+Boolean isActive"
     }
 
-    test("Person YAML example generates array field without plus (optional)") {
+    test("Person YAML example: optional array annotated with [0..1]") {
         val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/person.schema.yaml")))
         val mermaid = MermaidGenerator.generate(schemas)
-
         mermaid shouldContain "class Person"
         mermaid shouldContain "+Integer id"
         mermaid shouldContain "+String name"
-        mermaid shouldContain "String[] tags" // optional
+        mermaid shouldContain "String[] tags [0..1]" // optional array cardinality
         mermaid shouldNotContain "+String[] tags"
     }
 
-    test("Order example generates nested classes and relations with required markers only where appropriate") {
+    test("Order example: required vs optional markers") {
         val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/order.schema.json")))
         val mermaid = MermaidGenerator.generate(schemas)
-
         mermaid shouldContain "class Order"
-        mermaid shouldContain "+String orderId" // required top-level
+        mermaid shouldContain "+String orderId"
         mermaid shouldContain "class Customer"
-        mermaid shouldContain "+String customerId" // required inside customer
-        mermaid shouldContain "String name" // optional inside customer
+        mermaid shouldContain "+String customerId"
+        mermaid shouldContain "String name [0..1]" // optional
         mermaid shouldContain "class OrderItem"
-        mermaid shouldContain "+String productId" // required inside item
-        mermaid shouldContain "Integer quantity" // optional inside item
+        mermaid shouldContain "+String productId"
+        mermaid shouldContain "Integer quantity [0..1]" // optional
         mermaid shouldContain "Order \"1\" --> \"*\" OrderItem : items"
         mermaid shouldContain "Order \"1\" --> \"1\" Customer : customer"
         mermaid shouldNotContain "+String name"
         mermaid shouldNotContain "+Integer quantity"
     }
 
-    test("ProductCatalog example generates definitions and \$ref relations with required markers") {
+    test("ProductCatalog example retains required '+' without optional cardinality on required fields") {
         val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/product-catalog.schema.yaml")))
         val mermaid = MermaidGenerator.generate(schemas)
-
-        mermaid shouldContain "class ProductCatalog"
+        mermaid shouldContain "class ProductCatalog" // no properties
         mermaid shouldContain "class Product"
         mermaid shouldContain "+String id"
         mermaid shouldContain "+String name"
@@ -63,69 +59,69 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         mermaid shouldContain "class Money"
         mermaid shouldContain "+String currency"
         mermaid shouldContain "+Number amount"
+        // Ensure required fields not suffixed with [0..1]
+        mermaid shouldNotContain "+String id [0..1]"
+        mermaid shouldNotContain "+Money price [0..1]"
         mermaid shouldContain "ProductCatalog \"1\" --> \"*\" Product : products"
         mermaid shouldContain "Product o-- Money : price"
     }
 
-    test("Complex example has no required markers (all optional)") {
+    test("Complex example: all optional fields annotated with [0..1]") {
         val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/complex.schema.json")))
         val mermaid = MermaidGenerator.generate(schemas)
-
         mermaid shouldContain "class ComplexExample"
-        mermaid shouldContain "String id" // optional
-        mermaid shouldContain "Map<String,String> metadata" // optional
+        mermaid shouldContain "String id [0..1]"
+        mermaid shouldContain "Map<String,String> metadata [0..1]"
         mermaid shouldContain "class Address"
-        mermaid shouldContain "String street"
-        mermaid shouldContain "String city"
+        mermaid shouldContain "String street [0..1]"
+        mermaid shouldContain "String city [0..1]"
         mermaid shouldContain "ComplexExample \"1\" --> \"1\" Address : shipment"
         mermaid shouldContain "class Card"
+        mermaid shouldContain "String cardNumber [0..1]"
         mermaid shouldContain "class Paypal"
+        mermaid shouldContain "String accountEmail [0..1]"
         mermaid shouldContain "paymentMethod"
         mermaid shouldNotContain "+String id"
     }
 
-    test("Extends/inheritance: optional fields (no plus) and inheritance arrow") {
+    test("Extends/inheritance: optional fields show [0..1]") {
         val schemas = SchemaFilesReader.readSchemas(setOf(
             resourcePath("/readme_examples/child.schema.yaml"),
             resourcePath("/readme_examples/parent.schema.yaml")
         ))
         val mermaid = MermaidGenerator.generate(schemas)
-
         mermaid shouldContain "class Child"
         mermaid shouldContain "class Parent"
         mermaid shouldContain "Parent <|-- Child"
-        mermaid shouldContain "Integer childField" // optional
-        mermaid shouldContain "String parentField" // optional only in Parent
+        mermaid shouldContain "Integer childField [0..1]"
+        mermaid shouldContain "String parentField [0..1]"
         mermaid shouldNotContain "+Integer childField"
         mermaid shouldNotContain "+String parentField"
-        val parentFieldCount = mermaid.lineSequence().count { it.contains("String parentField") }
+        val parentFieldCount = mermaid.lineSequence().count { it.contains("String parentField [0..1]") }
         parentFieldCount shouldBe 1
     }
 
-    test("Transitive inheritance hides inherited properties at each level (Parent <- Child <- Grandchild)") {
+    test("Transitive inheritance: optional cardinality only, no '+', uniqueness maintained") {
         val schemas = SchemaFilesReader.readSchemas(setOf(
             resourcePath("/readme_examples/grandchild.schema.yaml"),
             resourcePath("/readme_examples/child.schema.yaml"),
             resourcePath("/readme_examples/parent.schema.yaml")
         ))
         val mermaid = MermaidGenerator.generate(schemas)
-
         mermaid shouldContain "class Parent"
         mermaid shouldContain "class Child"
         mermaid shouldContain "class Grandchild"
         mermaid shouldContain "Parent <|-- Child"
         mermaid shouldContain "Child <|-- Grandchild"
-        mermaid shouldContain "String parentField"
-        mermaid shouldContain "Integer childField"
-        mermaid shouldContain "Boolean grandchildField"
+        mermaid shouldContain "String parentField [0..1]"
+        mermaid shouldContain "Integer childField [0..1]"
+        mermaid shouldContain "Boolean grandchildField [0..1]"
         mermaid shouldNotContain "+String parentField"
         mermaid shouldNotContain "+Integer childField"
         mermaid shouldNotContain "+Boolean grandchildField"
-
-        val parentFieldCount = mermaid.lineSequence().count { it.contains("String parentField") }
-        val childFieldCount = mermaid.lineSequence().count { it.contains("Integer childField") }
-        val grandchildFieldCount = mermaid.lineSequence().count { it.contains("Boolean grandchildField") }
-
+        val parentFieldCount = mermaid.lineSequence().count { it.contains("String parentField [0..1]") }
+        val childFieldCount = mermaid.lineSequence().count { it.contains("Integer childField [0..1]") }
+        val grandchildFieldCount = mermaid.lineSequence().count { it.contains("Boolean grandchildField [0..1]") }
         parentFieldCount shouldBe 1
         childFieldCount shouldBe 1
         grandchildFieldCount shouldBe 1

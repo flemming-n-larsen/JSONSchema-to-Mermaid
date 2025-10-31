@@ -221,10 +221,12 @@ object MermaidGenerator {
 
     private fun formatInlineField(name: String, refType: String, prefs: Preferences, required: Boolean): String {
         val prefix = if (prefs.showRequiredWithPlus && required) "+" else ""
-        return "$prefix$refType $name"
+        val cardinality = if (!required) " [0..1]" else ""
+        return "$prefix$refType $name$cardinality"
     }
 
     private fun formatField(name: String, prop: Property?, prefs: Preferences, isRequired: Boolean = false): String {
+        // handle additionalProperties as a Map<K,V>
         if (prop?.additionalProperties != null) {
             val add = prop.additionalProperties
             var mapped = "Object"
@@ -233,23 +235,25 @@ object MermaidGenerator {
                 mapped = primitiveTypeName(t)
             }
             val prefix = if (prefs.showRequiredWithPlus && isRequired) "+" else ""
-            return prefix + "Map<String,$mapped> " + name
+            val cardinality = if (!isRequired) " [0..1]" else ""
+            return prefix + "Map<String,$mapped> " + name + cardinality
         }
         val t = prop?.type ?: prop?.format
         val kotlinType = primitiveTypeName(t)
         val prefix = if (prefs.showRequiredWithPlus && isRequired) "+" else ""
+        val cardinality = if (!isRequired) " [0..1]" else ""
         return when {
-            prop == null -> "$prefix$kotlinType $name"
+            prop == null -> "$prefix$kotlinType $name$cardinality"
             prop.type == "array" && prop.items != null && !prefs.arraysAsRelation -> {
                 val itemType = prop.items.type ?: prop.items.format
                 val mapped = primitiveTypeName(itemType)
-                "$prefix$mapped[] $name"
+                "$prefix$mapped[] $name$cardinality"
             }
             prop.`$ref` != null -> {
                 val refName = refToClassName(prop.`$ref`)
-                "$prefix$refName $name"
+                "$prefix$refName $name$cardinality"
             }
-            else -> "$prefix$kotlinType $name"
+            else -> "$prefix$kotlinType $name$cardinality"
         }
     }
 
@@ -257,7 +261,8 @@ object MermaidGenerator {
         val itemType = items?.type ?: items?.format
         val mapped = primitiveTypeName(itemType)
         val prefix = if (prefs.showRequiredWithPlus && required) "+" else ""
-        return "$prefix$mapped[] $name"
+        val cardinality = if (!required) " [0..1]" else ""
+        return "$prefix$mapped[] $name$cardinality"
     }
 
     private fun formatRelation(fromClass: String, toClass: String, fromMult: String? = null, toMult: String? = null, label: String, arrow: String = "-->"): String {
@@ -336,7 +341,7 @@ object MermaidGenerator {
         if (t.isEmpty()) return "Unknown"
         val wordRegex = Regex("[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\\d+")
         val matches = wordRegex.findAll(t).map { it.value }.toList()
-        val parts = if (matches.isNotEmpty()) matches else t.replace(Regex("[^A-Za-z0-9]+"), " ").split(Regex("\\s+"))
+        val parts = matches.ifEmpty { t.replace(Regex("[^A-Za-z0-9]+"), " ").split(Regex("\\s+")) }
         val joined = parts.filter { it.isNotBlank() }.joinToString("") { p -> p.lowercase().replaceFirstChar { it.uppercaseChar() } }
         return if (joined.isBlank()) "Unknown" else joined.replace(Regex("[^A-Za-z0-9]"), "")
     }

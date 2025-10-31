@@ -4,7 +4,7 @@ This file lists remaining tasks identified during the review that have NOT yet b
 
 ## 🔴 Priority: Must Fix Before Public Release
 
-1. Correct Required Field Semantics
+1. Correct Required Field Semantics ✅
    - Problem: Every field is currently prefixed with `+` regardless of whether it appears in the schema’s `required` list.
    - Action: Only add `+` for required fields; consider marking optional with `?` or no prefix.
    - Notes: Inline object schemas need their own required lists; may require adding `required` to `Property` or a small wrapper structure.

@@ -9,7 +9,7 @@ class ExtendsTypeAdapter : JsonDeserializer<Extends> {
             json.isJsonPrimitive && json.asJsonPrimitive.isString -> Extends.Ref(json.asString)
             json.isJsonObject -> {
                 val obj = json.asJsonObject
-                val ref = obj["\$ref"]?.asString ?: throw JsonParseException("Missing \$ref in extends object")
+                val ref = obj["\$ref"]?.asString ?: throw JsonParseException($$"Missing $ref in extends object")
                 Extends.Object(ref)
             }
             else -> throw JsonParseException("Invalid extends value: $json")

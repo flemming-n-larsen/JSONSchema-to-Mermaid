@@ -1,10 +1,9 @@
 # Mermaid ClassDiagram Generator
 Generates Mermaid class diagrams from JsonSchema files
 
-
 ## Examples
 
-This README includes progressive examples showing input JSON Schemas (both JSON and YAML) and the expected Mermaid class diagram output. Required fields are prefixed with `+`. Optional fields have no prefix.
+This README includes progressive examples showing input JSON Schemas (both JSON and YAML) and the expected Mermaid class diagram output. Required fields are prefixed with `+`. Optional fields include a UML-style cardinality suffix `[0..1]`.
 
 ### 1) Simple: Person (JSON)
 Input (person.schema.json):
@@ -31,8 +30,8 @@ classDiagram
   class Person {
     +Integer id
     +String name
-    String email
-    Boolean isActive
+    String email [0..1]
+    Boolean isActive [0..1]
   }
 ```
 
@@ -64,7 +63,7 @@ classDiagram
   class Person {
     +Integer id
     +String name
-    String[] tags
+    String[] tags [0..1]
   }
 ```
 
@@ -111,11 +110,11 @@ classDiagram
   }
   class Customer {
     +String customerId
-    String name
+    String name [0..1]
   }
   class OrderItem {
     +String productId
-    Integer quantity
+    Integer quantity [0..1]
   }
 
   Order "1" --> "1" Customer : customer
@@ -238,18 +237,18 @@ Generated Mermaid:
 ```mermaid
 classDiagram
   class ComplexExample {
-    String id
-    Map<String,String> metadata
+    String id [0..1]
+    Map<String,String> metadata [0..1]
   }
   class Address {
-    String street
-    String city
+    String street [0..1]
+    String city [0..1]
   }
   class Card {
-    String cardNumber
+    String cardNumber [0..1]
   }
   class Paypal {
-    String accountEmail
+    String accountEmail [0..1]
   }
 
   ComplexExample "1" --> "1" Address : shipment
@@ -287,25 +286,24 @@ Generated Mermaid:
 ```mermaid
 classDiagram
   class Parent {
-    String parentField
+    String parentField [0..1]
   }
   class Child {
-    Integer childField
+    Integer childField [0..1]
   }
   Parent <|-- Child
 ```
 
 ### Tips for reading these examples
 - `+` indicates a required field.
+- `[0..1]` indicates an optional field (may be absent).
 - Arrays may be shown as X[] or as relationships with multiplicity "*".
 - Inline anonymous objects are often pulled out into named classes by the generator.
 - `$ref` leads to class reuse and may produce aggregation (`o--`) or association (`-->`).
 
-
 ## Usage
 
 See the project scripts in `build/scripts` or the generated CLI in `build/scripts/jsonschema-to-mermaid` for how to run this generator against a schema file and get Mermaid markdown as output.
-
 
 ## Contributing examples
 If you add additional examples, please include:
