@@ -25,7 +25,9 @@ private fun loadAppNameFromProperties(): String {
 }
 
 class App : CliktCommand(name = loadAppNameFromProperties()) {
-    private val sourcePath: Path by argument("source", help = "Path to the input JSON Schema file or directory").path(mustExist = true)
+    private val sourceFileOption: String? by option("-s", "--source", help = "Name of the input JSON Schema file (relative to --source-dir or CWD)")
+    private val sourceDirOption: Path? by option("-d", "--source-dir", help = "Path to the directory containing input JSON Schema files (default: current directory)").path(mustExist = true)
+    private val sourcePath: Path? by argument("source", help = "Path to the input JSON Schema file or directory (positional, optional; use for convenience or backward compatibility)").path(mustExist = true).optional()
     private val outputPathArg: Path? by argument("output", help = "Optional output file path").path().optional()
     private val outputPath: Path? by option("-o", "--output", help = "Write output to FILE instead of stdout").path()
     // The following options are documented but not yet supported in the generator implementation:
@@ -47,8 +49,41 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
     }
 
     override fun run() {
+        // Precedence:
+        // 1. If --source-dir or --source is set, use those.
+        // 2. Else, if positional <source> is set, use it as file or directory.
+        // 3. Else, use CWD and all schema files.
+        var dir: Path? = null
+        var fileName: String? = null
+        var positionalUsed = false
+        if (sourceDirOption != null || sourceFileOption != null) {
+            dir = sourceDirOption ?: java.nio.file.Paths.get("").toAbsolutePath()
+            fileName = sourceFileOption
+        } else if (sourcePath != null) {
+            positionalUsed = true
+            val file = sourcePath
+            if (file != null && file.toFile().exists()) {
+                if (file.toFile().isDirectory) {
+                    dir = file
+                    fileName = null
+                } else {
+                    dir = file.parent ?: java.nio.file.Paths.get("").toAbsolutePath()
+                    fileName = file.fileName.toString()
+                }
+            }
+        } else {
+            dir = java.nio.file.Paths.get("").toAbsolutePath()
+            fileName = null
+        }
+        val sources = resolveSources(dir!!, fileName)
+        if (sources.isEmpty()) {
+            echo("Error: No schema files found to process.", err = true)
+            return
+        }
         val actualOutputPath = outputPath ?: outputPathArg
-        val sources = resolveSources(sourcePath)
+        echo("Using source directory: $dir", err = true)
+        if (fileName != null) echo("Using source file: $fileName", err = true)
+        if (positionalUsed) echo("Used positional <source> argument.", err = true)
         printDiagnostics(sources)
         val schemas = readSchemasOrExit(sources)
         printSchemaDiagnostics(schemas)
@@ -57,9 +92,17 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
         if (actualOutputPath == null) print(output)
     }
 
-    private fun resolveSources(sourcePath: Path): MutableSet<Path> {
+    private fun resolveSources(dir: Path, fileName: String?): MutableSet<Path> {
         val sources = mutableSetOf<Path>()
-        sources.add(sourcePath)
+        if (fileName != null) {
+            val file = dir.resolve(fileName)
+            if (file.toFile().exists()) sources.add(file)
+        } else {
+            val files = dir.toFile().listFiles { f ->
+                f.isFile && (f.name.endsWith(".json") || f.name.endsWith(".yaml") || f.name.endsWith(".yml"))
+            } ?: emptyArray()
+            sources.addAll(files.map { it.toPath() })
+        }
         return sources
     }
 
