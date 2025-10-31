@@ -7,69 +7,30 @@ This helps you visualize data models, document APIs, and understand complex sche
 
 ## Usage
 
-You can run the generator directly from the command line. The tool reads one or more JSON Schema files and outputs a Mermaid class
-diagram to standard output or a file.
+You can run the generator from the command line. It reads one or more JSON Schema files and outputs a Mermaid class diagram to standard output or a file.
 
-### Basic usage
+### Usage
 
 ```sh
 jsonschema-to-mermaid [OPTIONS] [<source>] [<output>]
 ```
 
-- `<source>`: (Optional) Path to the input JSON Schema file or directory. If omitted, all schema files in the current working directory are processed.
-- `<output>`: (Optional) Path to write the generated Mermaid diagram. If omitted, output is printed to stdout.
+- `<source>`: (optional) Input schema file or directory. If omitted, all schema files in the current directory are used.
+- `<output>`: (optional) Output file. If omitted, output is printed to stdout.
 
-You can also use the explicit options for clarity or scripting:
-
-```sh
-jsonschema-to-mermaid [OPTIONS] [--source <file>] [--source-dir <dir>] [<output>]
-```
-
-- `--source <file>`: Name of the input JSON Schema file (relative to --source-dir or current directory). If omitted, all schema files in the directory are processed.
-- `--source-dir <dir>`: Path to the directory containing input JSON Schema files. If omitted, the current working directory is used.
+**Options:**
+- `-s, --source FILE`      Input schema file (relative to directory or CWD)
+- `-d, --source-dir DIR`   Directory with schema files (default: current directory)
+- `-o, --output FILE`      Output file
+- `-h, --help`             Show help
+- `-V, --version`          Show version
 
 **Behavior:**
-- If both `--source` and `--source-dir` are set, the tool processes the specified file from the specified directory.
-- If only `--source-dir` is set, all schema files in that directory are processed.
-- If only `--source` is set, the file is read from the current working directory.
-- If neither is set, and `<source>` is provided, it is used as the file or directory.
-- If neither is set and `<source>` is omitted, all schema files in the current working directory are processed.
-
-### Options
-
-| Option                  | Description                                      |
-|-------------------------|--------------------------------------------------|
-| -s, --source FILE       | Name of the input JSON Schema file (relative to --source-dir or CWD) |
-| -d, --source-dir DIR    | Path to the directory containing input JSON Schema files (default: current directory) |
-| -o, --output FILE       | Write output to FILE instead of stdout           |
-| -h, --help              | Show help message and exit                       |
-| -V, --version           | Show version information and exit                |
-
-### Examples
-
-Process a specific file in a directory:
-
-```sh
-jsonschema-to-mermaid --source person.schema.json --source-dir examples/schemas/ -o person.mmd
-```
-
-Process all schema files in a directory:
-
-```sh
-jsonschema-to-mermaid --source-dir examples/schemas/ -o all.mmd
-```
-
-Process a specific file in the current directory:
-
-```sh
-jsonschema-to-mermaid --source person.schema.json -o person.mmd
-```
-
-Process all schema files in the current directory:
-
-```sh
-jsonschema-to-mermaid -o all.mmd
-```
+- If both `--source` and `--source-dir` are set, the file is taken from the directory.
+- If only `--source-dir` is set, all schema files in that directory are used.
+- If only `--source` is set, the file is taken from the current directory.
+- If neither is set, and `<source>` is given, it is used as file or directory.
+- If nothing is set, all schema files in the current directory are used.
 
 ## Examples
 
