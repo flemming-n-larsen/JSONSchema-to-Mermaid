@@ -11,59 +11,72 @@ import java.nio.file.Path
 fun main(args: Array<String>) = App().main(args)
 
 class App : CliktCommand() {
-    // Accept a single source path (file or directory) to avoid the issue where a path was tokenized into segments.
     private val source: Path by argument().path(mustExist = true)
-    // Make dest optional: if not supplied, print only to stdout. If supplied, write to file and also print.
     private val dest: Path? by argument().path().optional()
 
     override fun run() {
-        // Build the actual set of sources to scan.
+        val sources = resolveSources(source, dest)
+        val actualDest = resolveDestination(dest)
+        printDiagnostics(sources)
+        val schemas = readSchemasOrExit(sources)
+        printSchemaDiagnostics(schemas)
+        val output = generateMermaidOrExit(schemas)
+        writeOutputIfNeeded(actualDest, output)
+        print(output)
+    }
+
+    private fun resolveSources(source: Path, dest: Path?): MutableSet<Path> {
         val sources = mutableSetOf<Path>()
         sources.add(source)
-
-        var actualDest: Path? = dest
-        // If dest was supplied and it's a directory, treat it as an additional source instead of a destination.
-        if (dest != null && dest!!.toFile().isDirectory()) {
-            sources.add(dest!!)
-            actualDest = null
+        if (dest != null && dest.toFile().isDirectory) {
+            sources.add(dest)
         }
+        return sources
+    }
 
-        // Diagnostic: print resolved source paths with details
-        // print diagnostics to stderr so stdout can be used for the Mermaid diagram
+    private fun resolveDestination(dest: Path?): Path? {
+        return if (dest != null && dest.toFile().isDirectory) null else dest
+    }
+
+    private fun printDiagnostics(sources: Set<Path>) {
         echo("Resolved source paths:", err = true)
         sources.forEach { p ->
             val abs = try { p.toAbsolutePath().toString() } catch (_: Exception) { "<invalid>" }
-            echo(" - '$p' -> abs='$abs', exists=${p.toFile().exists()}, isDirectory=${p.toFile().isDirectory()}", err = true)
+            echo(" - '$p' -> abs='$abs', exists=${p.toFile().exists()}, isDirectory=${p.toFile().isDirectory}", err = true)
         }
+    }
 
-        val schemas = try {
+    private fun readSchemasOrExit(sources: Set<Path>): List<jsonschema_to_mermaid.schema_files.SchemaFileInfo> {
+        return try {
             SchemaFilesReader.readSchemas(sources)
         } catch (e: Exception) {
             echo("Failed to read schemas: ${e.message}", err = true)
             throw e
         }
+    }
 
-        // Safely handle nullable filenames when printing diagnostics
+    private fun printSchemaDiagnostics(schemas: List<jsonschema_to_mermaid.schema_files.SchemaFileInfo>) {
         echo("Read ${schemas.size} schema(s): ${schemas.joinToString(",") { it.filename ?: "<unknown>" }}", err = true)
+    }
 
-        val output = try {
+    private fun generateMermaidOrExit(schemas: List<jsonschema_to_mermaid.schema_files.SchemaFileInfo>): String {
+        return try {
             MermaidGenerator.generate(schemas)
         } catch (e: Exception) {
             echo("Failed to generate Mermaid: ${e.message}", err = true)
             e.printStackTrace()
             throw e
-         }
+        }
+    }
 
-        // If a destination file was provided, write output to it.
-        if (actualDest != null) {
+    private fun writeOutputIfNeeded(dest: Path?, output: String) {
+        if (dest != null) {
             try {
-                actualDest.toFile().writeText(output)
+                dest.toFile().writeText(output)
             } catch (e: Exception) {
-                echo("Failed to write output to $actualDest: ${e.message}", err = true)
+                echo("Failed to write output to $dest: ${e.message}", err = true)
                 throw e
-             }
-         }
-         // Always print to stdout for convenience.
-         print(output)
-     }
+            }
+        }
+    }
 }
