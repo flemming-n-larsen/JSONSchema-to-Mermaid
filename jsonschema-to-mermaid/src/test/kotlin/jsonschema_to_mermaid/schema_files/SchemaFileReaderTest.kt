@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import jsonschema_to_mermaid.exception.FileFormatException
+import jsonschema_to_mermaid.exception.InheritanceCycleException
 import jsonschema_to_mermaid.schema_files.SchemaFilesReader.readSchemas
 import test_util.resourcePath
 import java.io.FileNotFoundException
@@ -48,6 +49,15 @@ class SchemaFileReaderTest : FunSpec({
     test("readSchemas throws an exception when reading an invalid YAML schema file") {
         shouldThrow<FileFormatException> {
             readSchemas(setOf(resourcePath("/invalid/invalid.schema.yaml")))
+        }
+    }
+
+    test("readSchemas throws InheritanceCycleException on circular extends chain") {
+        shouldThrow<InheritanceCycleException> {
+            readSchemas(setOf(
+                resourcePath("/readme_examples/cycle-a.schema.yaml"),
+                resourcePath("/readme_examples/cycle-b.schema.yaml")
+            ))
         }
     }
 })

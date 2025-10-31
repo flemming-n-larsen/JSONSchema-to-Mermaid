@@ -1,0 +1,9 @@
+$id: cycle-a.schema.yaml
+$schema: https://json-schema.org/draft/2020-12/schema
+title: CycleA
+extends:
+  $ref: cycle-b.schema.yaml
+properties:
+  aField:
+    type: string
+
