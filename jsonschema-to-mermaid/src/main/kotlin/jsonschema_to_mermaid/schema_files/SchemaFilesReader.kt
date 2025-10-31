@@ -43,14 +43,14 @@ object SchemaFilesReader {
 
     private fun readSchema(path: Path, visiting: MutableSet<Path>): Schema {
         val abs = path.toAbsolutePath().normalize()
-        if (!abs.toFile().exists()) throw FileFormatException("Schema file not found: ${abs.fileName}")
+        if (!abs.toFile().exists()) throw FileFormatException("Schema file not found: $abs")
         if (!visiting.add(abs)) {
-            throw InheritanceCycleException("Cycle detected while resolving extends: ${visiting.joinToString(" -> ") { it.fileName.toString() }} -> ${abs.fileName}")
+            throw InheritanceCycleException(formatCycleMessage(visiting, abs))
         }
         val schema = when (getFileExtension(abs)) {
             "json" -> parseJsonSchema(abs)
             "yaml", "yml" -> parseYamlSchema(abs)
-            else -> throw FileFormatException("Unsupported schema file type: ${abs.fileName}")
+            else -> throw FileFormatException("Unsupported schema file type '${abs.fileName}' at path: $abs")
         }
         val resolved = resolveExtends(schema, abs, visiting)
         visiting.remove(abs)
@@ -88,10 +88,11 @@ object SchemaFilesReader {
     private fun resolveExtends(schema: Schema, path: Path, visiting: MutableSet<Path>): Schema {
         val extends = schema.extends ?: return schema
         val refPath = when (extends) {
-            is Extends.Ref -> path.parent.resolve(extends.ref)
-            is Extends.Object -> path.parent.resolve(extends.ref)
+            is jsonschema_to_mermaid.jsonschema.Extends.Ref -> path.parent.resolve(extends.ref)
+            is jsonschema_to_mermaid.jsonschema.Extends.Object -> path.parent.resolve(extends.ref)
         }.toAbsolutePath().normalize()
-        val baseSchema = readSchema(refPath, visiting) // recursive with same visited set
+        // Recursive call will handle cycle detection
+        val baseSchema = readSchema(refPath, visiting)
         val baseOwnProps = baseSchema.properties?.keys ?: emptySet()
         val baseInherited = baseSchema.inheritedPropertyNames ?: emptyList()
         val childOwnProps = schema.properties?.keys ?: emptySet()
@@ -115,6 +116,12 @@ object SchemaFilesReader {
         if (base == null) return override
         if (override == null) return base
         return (base + override).distinct()
+    }
+
+    private fun formatCycleMessage(visiting: Set<Path>, current: Path): String {
+        // visiting already contains current path (since add failed). Build ordered chain including current again at end.
+        val chain = (visiting.toList() + current).joinToString(" -> ") { it.toAbsolutePath().toString() }
+        return "Inheritance cycle detected while resolving extends. Chain: $chain"
     }
 
     private fun getFileExtension(path: Path): String {
