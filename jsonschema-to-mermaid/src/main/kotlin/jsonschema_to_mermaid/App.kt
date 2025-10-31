@@ -4,6 +4,8 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.path
 import jsonschema_to_mermaid.schema_files.SchemaFilesReader
 import java.nio.file.Path
@@ -11,31 +13,31 @@ import java.nio.file.Path
 fun main(args: Array<String>) = App().main(args)
 
 class App : CliktCommand() {
-    private val sourcePath: Path by argument().path(mustExist = true)
-    private val destinationPath: Path? by argument().path().optional()
+    private val sourcePath: Path by argument("source", help = "Path to the input JSON Schema file or directory").path(mustExist = true)
+    private val outputPathArg: Path? by argument("output", help = "Optional output file path").path().optional()
+    private val outputPath: Path? by option("-o", "--output", help = "Write output to FILE instead of stdout").path()
+    // The following options are documented but not yet supported in the generator implementation:
+    // private val root: String? by option("-r", "--root", help = "Use NAME as the root definition")
+    // private val noHeader: Boolean by option("--no-header", help = "Suppress the Mermaid header in output").flag(default = false)
+    init {
+        versionOption("0.1.0")
+    }
 
     override fun run() {
-        val sources = resolveSources(sourcePath, destinationPath)
-        val actualDestinationPath = resolveDestination(destinationPath)
+        val actualOutputPath = outputPath ?: outputPathArg
+        val sources = resolveSources(sourcePath)
         printDiagnostics(sources)
         val schemas = readSchemasOrExit(sources)
         printSchemaDiagnostics(schemas)
         val output = generateMermaidOrExit(schemas)
-        writeOutputIfNeeded(actualDestinationPath, output)
-        print(output)
+        writeOutputIfNeeded(actualOutputPath, output)
+        if (actualOutputPath == null) print(output)
     }
 
-    private fun resolveSources(sourcePath: Path, destinationPath: Path?): MutableSet<Path> {
+    private fun resolveSources(sourcePath: Path): MutableSet<Path> {
         val sources = mutableSetOf<Path>()
         sources.add(sourcePath)
-        if (destinationPath != null && destinationPath.toFile().isDirectory) {
-            sources.add(destinationPath)
-        }
         return sources
-    }
-
-    private fun resolveDestination(destinationPath: Path?): Path? {
-        return if (destinationPath != null && destinationPath.toFile().isDirectory) null else destinationPath
     }
 
     private fun printDiagnostics(sources: Set<Path>) {
@@ -59,7 +61,9 @@ class App : CliktCommand() {
         echo("Read ${schemas.size} schema(s): ${schemas.joinToString(",") { it.filename ?: "<unknown>" }}", err = true)
     }
 
-    private fun generateMermaidOrExit(schemas: List<jsonschema_to_mermaid.schema_files.SchemaFileInfo>): String {
+    private fun generateMermaidOrExit(
+        schemas: List<jsonschema_to_mermaid.schema_files.SchemaFileInfo>
+    ): String {
         return try {
             MermaidGenerator.generate(schemas)
         } catch (e: Exception) {

@@ -13,14 +13,21 @@ diagram to standard output or a file.
 ### Basic usage
 
 ```sh
-jsonschema-to-mermaid path/to/schema.json
+jsonschema-to-mermaid [OPTIONS] <source> [<output>]
 ```
 
-Or for YAML:
+- `<source>`: Path to the input JSON Schema file or directory (JSON or YAML).
+- `<output>`: (Optional) Path to write the generated Mermaid diagram. If omitted, output is printed to stdout.
 
-```sh
-jsonschema-to-mermaid path/to/schema.yaml
-```
+### Options
+
+| Option                | Description                                      |
+|-----------------------|--------------------------------------------------|
+| -o, --output FILE     | Write output to FILE instead of stdout           |
+| -r, --root NAME       | Use NAME as the root definition                  |
+| --no-header           | Suppress the Mermaid header in output            |
+| -h, --help            | Show help message and exit                       |
+| -V, --version         | Show version information and exit                |
 
 ### Example
 
@@ -29,6 +36,12 @@ jsonschema-to-mermaid examples/bookstore/bookstore.schema.json -o bookstore.mmd
 ```
 
 This command reads the `bookstore.schema.json` file and writes the generated Mermaid diagram to `bookstore.mmd`.
+
+You can also specify a root definition and suppress the header:
+
+```sh
+jsonschema-to-mermaid -r Bookstore --no-header examples/bookstore/bookstore.schema.json -o bookstore.mmd
+```
 
 ## Examples
 

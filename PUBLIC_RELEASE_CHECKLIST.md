@@ -5,7 +5,7 @@ This file lists remaining tasks identified during the review that have NOT yet b
 ## 🔴 Priority: Must Fix Before Public Release
 
 1. CLI Option Documentation and Implementation
-   - Problem: The README and help text describe CLI options (e.g., --output, --root, --no-header, --help), but not all are implemented or discoverable in the tool.
+   - Problem: The README and help text should describe CLI options (e.g., --output, --root, --no-header, --help), but not all are implemented or discoverable in the tool.
    - Action: Ensure all documented options are implemented in the CLI, and that the tool's --help output matches the README. Add or update options as needed for output file, root definition, header suppression, and help. Test that all options work as described.
    - Acceptance: Running `jsonschema-to-mermaid --help` lists all options with clear descriptions; README and CLI help are consistent; all options function as documented.
 
