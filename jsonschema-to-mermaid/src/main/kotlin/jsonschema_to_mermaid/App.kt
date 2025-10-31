@@ -13,7 +13,18 @@ import java.util.Properties
 
 fun main(args: Array<String>) = App().main(args)
 
-class App : CliktCommand() {
+private fun loadAppNameFromProperties(): String {
+    return try {
+        val props = Properties()
+        val stream = App::class.java.classLoader.getResourceAsStream("app.properties")
+        stream?.use { props.load(it) }
+        props.getProperty("appName") ?: "jsonschema-to-mermaid"
+    } catch (_: Exception) {
+        "jsonschema-to-mermaid"
+    }
+}
+
+class App : CliktCommand(name = loadAppNameFromProperties()) {
     private val sourcePath: Path by argument("source", help = "Path to the input JSON Schema file or directory").path(mustExist = true)
     private val outputPathArg: Path? by argument("output", help = "Optional output file path").path().optional()
     private val outputPath: Path? by option("-o", "--output", help = "Write output to FILE instead of stdout").path()

@@ -62,6 +62,7 @@ tasks {
         useJUnitPlatform()
     }
 
+    // Task to generate version.properties
     register("generateVersionProperties") {
         val outputDir = file("src/main/resources")
         val outputFile = file("src/main/resources/version.properties")
@@ -74,11 +75,26 @@ tasks {
         }
     }
 
+    // Task to generate app.properties from gradle.properties
+    val generateAppProperties by registering {
+        val outputDir = layout.buildDirectory.dir("generated-resources/main")
+        outputs.dir(outputDir)
+        doLast {
+            val appName = project.findProperty("appName") as? String ?: "jsonschema-to-mermaid"
+            val file = outputDir.get().file("app.properties").asFile
+            file.parentFile.mkdirs()
+            file.writeText("appName=$appName\n")
+        }
+    }
+
     named("processResources") {
         dependsOn("generateVersionProperties")
+        dependsOn(generateAppProperties)
     }
 }
 
 kotlin {
     jvmToolchain(11)
 }
+
+sourceSets["main"].resources.srcDir(layout.buildDirectory.dir("generated-resources/main"))
