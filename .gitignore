@@ -27,3 +27,6 @@ build
 
 # IntelliJ files
 .idea
+
+# Kotlin files
+.kotlin

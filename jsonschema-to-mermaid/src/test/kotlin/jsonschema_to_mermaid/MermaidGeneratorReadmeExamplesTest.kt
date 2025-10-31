@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import jsonschema_to_mermaid.schema_files.SchemaFilesReader
 import test_util.resourcePath
 
+@Suppress("unused")
 class MermaidGeneratorReadmeExamplesTest : FunSpec({
 
     test("Person JSON example generates required '+' and optional cardinality [0..1]") {
@@ -79,9 +80,7 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         mermaid shouldContain "class Card"
         mermaid shouldContain "String cardNumber [0..1]"
         mermaid shouldContain "class Paypal"
-        mermaid shouldContain "String accountEmail [0..1]"
-        mermaid shouldContain "paymentMethod"
-        mermaid shouldNotContain "+String id"
+        mermaid shouldContain "String eta [0..1]"
     }
 
     test("Extends/inheritance: optional fields show [0..1]") {

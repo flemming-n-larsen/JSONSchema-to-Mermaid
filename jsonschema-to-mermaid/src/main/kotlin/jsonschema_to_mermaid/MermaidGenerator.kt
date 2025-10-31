@@ -97,10 +97,10 @@ object MermaidGenerator {
                     return@forEach
                 }
 
-                if (handleCompositionKeywords(className, propertyName, property, relations)) return@forEach
-                if (handleOneOrAnyOf(classProperties, className, propertyName, property, relations, preferences)) return@forEach
-
                 val isRequired = schemaFile.schema.required?.contains(propertyName) == true
+
+                if (handleCompositionKeywords(classProperties, className, propertyName, property, relations, preferences)) return@forEach
+                if (handleOneOrAnyOf(classProperties, className, propertyName, property, relations, preferences)) return@forEach
 
                 // Maps (additionalProperties)
                 if (property.additionalProperties != null) {
@@ -176,20 +176,41 @@ object MermaidGenerator {
         when {
             property.`$ref` != null -> relations.add(formatRelation(className, refToClassName(property.`$ref`), if (isRequired) "1" else "0..1", "1", propertyName, "-->"))
             property.type == "array" && preferences.arraysAsRelation -> handleTopLevelArray(schemaFile, className, propertyName, property, classProperties, relations, preferences, isRequired)
-            property.type == "object" -> handleTopLevelObject(schemaFile, className, propertyName, property, classProperties, relations, preferences, isRequired)
+            property.type == "object" -> handleTopLevelObject(className, propertyName, property, classProperties, relations, preferences, isRequired)
             else -> classProperties[className]!!.add(formatField(propertyName, property, preferences, isRequired))
         }
     }
 
-    private fun handleCompositionKeywords(className: String, propertyName: String, property: Property, relations: MutableList<String>): Boolean {
+    private fun handleCompositionKeywords(
+        classProperties: MutableMap<String, MutableList<String>>,
+        className: String,
+        propertyName: String,
+        property: Property,
+        relations: MutableList<String>,
+        preferences: Preferences
+    ): Boolean {
         if (!property.allOf.isNullOrEmpty()) {
             val refs = property.allOf.filter { it.`$ref` != null }
+            val inlines = property.allOf.filter { it.`$ref` == null && it.properties != null }
+            var handled = false
             if (refs.isNotEmpty()) {
                 refs.forEach { r ->
                     relations.add(formatRelation(className, refToClassName(r.`$ref`), "1", "1", propertyName, "-->"))
                 }
-                return true
+                handled = true
             }
+            if (inlines.isNotEmpty()) {
+                // Merge inline properties into the parent class
+                inlines.forEach { inline ->
+                    inline.properties?.forEach { (inlinePropName, inlineProp) ->
+                        classProperties[className]?.add(
+                            formatField(inlinePropName, inlineProp, preferences, inline.required?.contains(inlinePropName) == true)
+                        )
+                    }
+                }
+                handled = true
+            }
+            return handled
         }
         return false
     }
@@ -254,7 +275,6 @@ object MermaidGenerator {
     }
 
     private fun handleTopLevelObject(
-        schemaFile: SchemaFileInfo,
         className: String,
         propertyName: String,
         property: Property,
