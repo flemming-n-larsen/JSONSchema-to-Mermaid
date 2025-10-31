@@ -4,12 +4,7 @@ Generates Mermaid class diagrams from JsonSchema files
 
 ## Examples
 
-This README includes progressive examples showing input JSON Schemas (both JSON and YAML) and the expected Mermaid class diagram output. Start with a very simple schema and move to more complex patterns (nested objects, arrays, $ref, allOf/oneOf/anyOf, enums, patternProperties, and additionalProperties).
-
-Each example shows:
-- The input schema (JSON or YAML)
-- The generated Mermaid diagram (as a Markdown fenced block with ```mermaid```) that this project aims to produce
-
+This README includes progressive examples showing input JSON Schemas (both JSON and YAML) and the expected Mermaid class diagram output. Required fields are prefixed with `+`. Optional fields have no prefix.
 
 ### 1) Simple: Person (JSON)
 Input (person.schema.json):
@@ -36,13 +31,10 @@ classDiagram
   class Person {
     +Integer id
     +String name
-    +String email
-    +Boolean isActive
+    String email
+    Boolean isActive
   }
 ```
-
-Notes: primitive types map to simple class fields. Required fields are typically shown as non-optional; optional fields can be annotated or omitted depending on tooling preferences.
-
 
 ### 2) Simple: Person (YAML)
 Input (person.schema.yaml):
@@ -72,12 +64,9 @@ classDiagram
   class Person {
     +Integer id
     +String name
-    +String[] tags
+    String[] tags
   }
 ```
-
-Notes: arrays are represented as a field with a trailing [] or as relationships to a separate class representing the item type depending on settings.
-
 
 ### 3) Nested Objects and Arrays
 Input (order.schema.json):
@@ -113,7 +102,7 @@ Input (order.schema.json):
 }
 ```
 
-Generated Mermaid (example showing classes and relationships):
+Generated Mermaid:
 
 ```mermaid
 classDiagram
@@ -122,19 +111,16 @@ classDiagram
   }
   class Customer {
     +String customerId
-    +String name
+    String name
   }
   class OrderItem {
     +String productId
-    +Integer quantity
+    Integer quantity
   }
 
-  Order "1" --> "1" Customer : has
+  Order "1" --> "1" Customer : customer
   Order "1" --> "*" OrderItem : items
 ```
-
-Notes: The generator may choose to extract inline object/array item schemas into named classes (e.g., OrderItem) and show cardinalities.
-
 
 ### 4) References ($ref), Reuse and Enums
 Input (product-catalog.schema.yaml):
@@ -189,9 +175,6 @@ classDiagram
   ProductCatalog "1" --> "*" Product : products
   Product o-- Money : price
 ```
-
-Notes: $ref leads to class reuse. Enums can be shown either as a note on the field or as a separate enumerated type.
-
 
 ### 5) Complex: Composition (allOf, anyOf, oneOf), additionalProperties, patternProperties
 Input (complex.schema.json):
@@ -250,23 +233,23 @@ Input (complex.schema.json):
 }
 ```
 
-Generated Mermaid (illustrative):
+Generated Mermaid:
 
 ```mermaid
 classDiagram
   class ComplexExample {
-    +String id
-    +Map<String,String> metadata
+    String id
+    Map<String,String> metadata
   }
   class Address {
-    +String street
-    +String city
+    String street
+    String city
   }
   class Card {
-    +String cardNumber
+    String cardNumber
   }
   class Paypal {
-    +String accountEmail
+    String accountEmail
   }
 
   ComplexExample "1" --> "1" Address : shipment
@@ -274,11 +257,7 @@ classDiagram
   ComplexExample "1" --> "1" Paypal : paymentMethod (oneOf)
 ```
 
-Notes: Composition keywords like allOf/oneOf/anyOf can be represented as inheritance, composition or alternatives depending on visual preferences. additionalProperties and patternProperties are shown as maps or notes.
-
-
 ### 6) Inheritance with `extends`
-
 Input (parent.schema.yaml):
 
 ```yaml
@@ -308,22 +287,19 @@ Generated Mermaid:
 ```mermaid
 classDiagram
   class Parent {
-    +String parentField
+    String parentField
   }
   class Child {
-    +Integer childField
+    Integer childField
   }
   Parent <|-- Child
 ```
 
-Notes: The `extends` property allows one schema to inherit from another. The generated diagram shows the inheritance arrow; inherited fields are not repeated in the child class body for clarity.
-
-
 ### Tips for reading these examples
-- Field types shown (String, Integer, Number, Boolean) are human-friendly mappings from JSON Schema types.
+- `+` indicates a required field.
 - Arrays may be shown as X[] or as relationships with multiplicity "*".
-- Inline anonymous objects are often pulled out into named classes by the generator for clarity.
-- The project tries to preserve schema structure and reuse when $ref is present.
+- Inline anonymous objects are often pulled out into named classes by the generator.
+- `$ref` leads to class reuse and may produce aggregation (`o--`) or association (`-->`).
 
 
 ## Usage
