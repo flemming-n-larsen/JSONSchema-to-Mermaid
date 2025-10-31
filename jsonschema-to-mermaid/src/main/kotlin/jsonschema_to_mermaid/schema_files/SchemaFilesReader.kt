@@ -21,15 +21,15 @@ object SchemaFilesReader {
         .create()
     private val yaml = Yaml()
 
-    fun readSchemas(source: Set<Path>): List<SchemaFileInfo> {
-        return collectAllFiles(source).map { filepath ->
+    fun readSchemas(sourcePaths: Set<Path>): List<SchemaFileInfo> {
+        return collectAllFiles(sourcePaths).map { filepath ->
             val schema = readSchema(filepath)
             SchemaFileInfo(filepath.name, schema)
         }
     }
 
-    private fun collectAllFiles(source: Set<Path>): Set<Path> =
-        source.flatMap { file ->
+    private fun collectAllFiles(sourcePaths: Set<Path>): Set<Path> =
+        sourcePaths.flatMap { file ->
             if (file.isDirectory()) {
                 collectAllFiles(Files.list(file).toList().toSet())
             } else if (setOf("json", "yaml", "yml").contains(getFileExtension(file))) {
@@ -88,8 +88,8 @@ object SchemaFilesReader {
     private fun resolveExtends(schema: Schema, path: Path, visiting: MutableSet<Path>): Schema {
         val extends = schema.extends ?: return schema
         val refPath = when (extends) {
-            is jsonschema_to_mermaid.jsonschema.Extends.Ref -> path.parent.resolve(extends.ref)
-            is jsonschema_to_mermaid.jsonschema.Extends.Object -> path.parent.resolve(extends.ref)
+            is Extends.Ref -> path.parent.resolve(extends.ref)
+            is Extends.Object -> path.parent.resolve(extends.ref)
         }.toAbsolutePath().normalize()
         // Recursive call will handle cycle detection
         val baseSchema = readSchema(refPath, visiting)

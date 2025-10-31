@@ -11,31 +11,31 @@ import java.nio.file.Path
 fun main(args: Array<String>) = App().main(args)
 
 class App : CliktCommand() {
-    private val source: Path by argument().path(mustExist = true)
-    private val dest: Path? by argument().path().optional()
+    private val sourcePath: Path by argument().path(mustExist = true)
+    private val destinationPath: Path? by argument().path().optional()
 
     override fun run() {
-        val sources = resolveSources(source, dest)
-        val actualDest = resolveDestination(dest)
+        val sources = resolveSources(sourcePath, destinationPath)
+        val actualDestinationPath = resolveDestination(destinationPath)
         printDiagnostics(sources)
         val schemas = readSchemasOrExit(sources)
         printSchemaDiagnostics(schemas)
         val output = generateMermaidOrExit(schemas)
-        writeOutputIfNeeded(actualDest, output)
+        writeOutputIfNeeded(actualDestinationPath, output)
         print(output)
     }
 
-    private fun resolveSources(source: Path, dest: Path?): MutableSet<Path> {
+    private fun resolveSources(sourcePath: Path, destinationPath: Path?): MutableSet<Path> {
         val sources = mutableSetOf<Path>()
-        sources.add(source)
-        if (dest != null && dest.toFile().isDirectory) {
-            sources.add(dest)
+        sources.add(sourcePath)
+        if (destinationPath != null && destinationPath.toFile().isDirectory) {
+            sources.add(destinationPath)
         }
         return sources
     }
 
-    private fun resolveDestination(dest: Path?): Path? {
-        return if (dest != null && dest.toFile().isDirectory) null else dest
+    private fun resolveDestination(destinationPath: Path?): Path? {
+        return if (destinationPath != null && destinationPath.toFile().isDirectory) null else destinationPath
     }
 
     private fun printDiagnostics(sources: Set<Path>) {
@@ -69,12 +69,12 @@ class App : CliktCommand() {
         }
     }
 
-    private fun writeOutputIfNeeded(dest: Path?, output: String) {
-        if (dest != null) {
+    private fun writeOutputIfNeeded(outputPath: Path?, output: String) {
+        if (outputPath != null) {
             try {
-                dest.toFile().writeText(output)
+                outputPath.toFile().writeText(output)
             } catch (e: Exception) {
-                echo("Failed to write output to $dest: ${e.message}", err = true)
+                echo("Failed to write output to $outputPath: ${e.message}", err = true)
                 throw e
             }
         }

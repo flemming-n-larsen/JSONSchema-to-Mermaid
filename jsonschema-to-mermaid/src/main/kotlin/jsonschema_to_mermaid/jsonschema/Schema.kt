@@ -10,7 +10,7 @@ data class Schema(
     val properties: Map<String, Property>? = mapOf(),
     val required: List<String>? = listOf(),
     val definitions: Map<String, Schema>? = mapOf(),
-    val extends: Extends? = null, // New: support for extends
+    val extends: Extends? = null,
     val inheritedPropertyNames: List<String>? = null,
 )
 
