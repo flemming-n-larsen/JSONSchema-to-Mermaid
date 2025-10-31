@@ -32,6 +32,7 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
     private val outputPathArg: Path? by argument("output", help = "Optional output file path").path().optional()
     private val outputPath: Path? by option("-o", "--output", help = "Write output to FILE instead of stdout").path()
     private val noClassDiagramHeader: Boolean by option("--no-classdiagram-header", help = "Suppress the 'classDiagram' header in Mermaid output").flag(default = false)
+    private val enumStyleOption: String? by option("--enum-style", help = "Enum rendering style: inline, note, or class (default: inline)")
     init {
         versionOption(loadVersionFromProperties())
     }
@@ -86,7 +87,13 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
         printDiagnostics(sources)
         val schemas = readSchemasOrExit(sources)
         printSchemaDiagnostics(schemas)
-        val output = generateMermaidOrExit(schemas)
+        val enumStyle = when (enumStyleOption?.lowercase()) {
+            "note" -> EnumStyle.NOTE
+            "class" -> EnumStyle.CLASS
+            else -> EnumStyle.INLINE
+        }
+        val preferences = jsonschema_to_mermaid.Preferences(enumStyle = enumStyle)
+        val output = generateMermaidOrExit(schemas, preferences)
         writeOutputIfNeeded(actualOutputPath, output)
         if (actualOutputPath == null) print(output)
     }
@@ -127,12 +134,13 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
     }
 
     private fun generateMermaidOrExit(
-        schemas: List<jsonschema_to_mermaid.schema_files.SchemaFileInfo>
+        schemas: List<jsonschema_to_mermaid.schema_files.SchemaFileInfo>,
+        preferences: jsonschema_to_mermaid.Preferences
     ): String {
         return try {
-            MermaidGenerator.generate(schemas, noClassDiagramHeader = noClassDiagramHeader)
+            MermaidGenerator.generate(schemas, noClassDiagramHeader = noClassDiagramHeader, preferences = preferences)
         } catch (e: Exception) {
-            echo("Failed to generate Mermaid: ${e.message}", err = true)
+            echo("Failed to generate Mermaid: [31m${e.message}[0m", err = true)
             e.printStackTrace()
             throw e
         }

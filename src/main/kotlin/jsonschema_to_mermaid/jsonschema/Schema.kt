@@ -9,7 +9,7 @@ data class Schema(
     val type: String? = null,
     val properties: Map<String, Property>? = mapOf(),
     val definitions: Map<String, Schema>? = mapOf(),
-    val required: List<String>? = null,
+    val required: List<String> = emptyList(),
     val extends: Extends? = null,
     val inheritedPropertyNames: List<String>? = null,
 )

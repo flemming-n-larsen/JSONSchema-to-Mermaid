@@ -52,6 +52,7 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
     test("ProductCatalog example retains required '+' without optional cardinality on required fields") {
         val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/product-catalog.schema.yaml")))
         val mermaid = MermaidGenerator.generate(schemas)
+        java.io.File("/tmp/mermaid_output.txt").writeText(mermaid)
         mermaid shouldContain "class ProductCatalog" // no properties
         mermaid shouldContain "class Product"
         mermaid shouldContain "+String id"
@@ -144,5 +145,28 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         mermaid shouldContain "class Person"
         mermaid shouldContain "+Integer id"
         mermaid shouldContain "+String name"
+    }
+
+    test("Enum example renders enum inline by default") {
+        val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/enum-example.schema.json")))
+        val mermaid = MermaidGenerator.generate(schemas, preferences = Preferences(enumStyle = EnumStyle.INLINE))
+        mermaid shouldContain "{A|B|C} status"
+    }
+
+    test("Enum example renders enum as note when enumStyle=NOTE") {
+        val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/enum-example.schema.json")))
+        val mermaid = MermaidGenerator.generate(schemas, preferences = Preferences(enumStyle = EnumStyle.NOTE))
+        mermaid shouldContain "note for EnumExample \"status: A, B, C\""
+    }
+
+    test("Enum example renders enum as class when enumStyle=CLASS") {
+        val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/enum-example.schema.json")))
+        val mermaid = MermaidGenerator.generate(schemas, preferences = Preferences(enumStyle = EnumStyle.CLASS))
+        mermaid shouldContain "class StatusEnum"
+        mermaid shouldContain "A"
+        mermaid shouldContain "B"
+        mermaid shouldContain "C"
+        mermaid shouldContain "<<enumeration>> StatusEnum"
+        mermaid shouldContain "StatusEnum status"
     }
 })
