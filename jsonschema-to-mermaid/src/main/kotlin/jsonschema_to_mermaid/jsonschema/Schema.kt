@@ -8,8 +8,8 @@ data class Schema(
 
     val type: String? = null,
     val properties: Map<String, Property>? = mapOf(),
-    val required: List<String>? = listOf(),
     val definitions: Map<String, Schema>? = mapOf(),
+    val required: List<String>? = null,
     val extends: Extends? = null,
     val inheritedPropertyNames: List<String>? = null,
 )

@@ -4,22 +4,6 @@ This file lists remaining tasks identified during the review that have NOT yet b
 
 ## 🔴 Priority: Must Fix Before Public Release
 
-1. Correct Required Field Semantics ✅
-   - Problem: Every field is currently prefixed with `+` regardless of whether it appears in the schema’s `required` list.
-   - Action: Only add `+` for required fields; consider marking optional with `?` or no prefix.
-   - Notes: Inline object schemas need their own required lists; may require adding `required` to `Property` or a small wrapper structure.
-   - Acceptance: README examples and tests reflect accurate required marking.
-
-2. Composition (allOf) Inline Merge Loss
-   - Problem: When `allOf` contains a `$ref` plus an inline object, only the relation is generated; inline properties (e.g. `eta`) are ignored.
-   - Action: Merge inline object members with referenced schema and represent them (either in the parent or a synthesized combined class).
-   - Acceptance: New test asserting `eta` (complex example) appears in output.
-
-3. PatternProperties Unsupported (README Mentions It)
-   - Problem: README suggests support; generator does nothing with `patternProperties`.
-   - Action: Either implement (Map<Pattern,Type> or note) or clearly document as unsupported in README.
-   - Acceptance: If implemented, tests cover at least one regex pattern; if deferred, README has Limitations section.
-
 4. Enum Rendering Absent
    - Problem: Enums appear only as primitive fields; no differentiation.
    - Action: Provide configuration: inline `{A|B|C}`, note, or separate `<<enumeration>>` class.

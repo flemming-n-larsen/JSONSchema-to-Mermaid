@@ -108,6 +108,12 @@ object MermaidGenerator {
                     return@forEach
                 }
 
+                // Maps (patternProperties)
+                if (property.patternProperties != null) {
+                    classProperties[className]!!.add(formatField(propertyName, property, preferences, isRequired))
+                    return@forEach
+                }
+
                 handleTopLevelProperty(schemaFile, className, propertyName, property, classProperties, relations, preferences, isRequired)
             }
         }
@@ -326,6 +332,20 @@ object MermaidGenerator {
             if (additional is Map<*, *>) {
                 val t = additional["type"] as? String
                 mapped = primitiveTypeName(t)
+            }
+            return if (isRequired) {
+                "+Map<String,$mapped> $propertyName"
+            } else {
+                "Map<String,$mapped> $propertyName [0..1]"
+            }
+        }
+        if (property?.patternProperties != null) {
+            // Get the first pattern property to determine the value type
+            val firstPattern = property.patternProperties.entries.firstOrNull()
+            var mapped = "Object"
+            if (firstPattern != null) {
+                val patternProp = firstPattern.value
+                mapped = primitiveTypeName(patternProp.type ?: patternProp.format)
             }
             return if (isRequired) {
                 "+Map<String,$mapped> $propertyName"

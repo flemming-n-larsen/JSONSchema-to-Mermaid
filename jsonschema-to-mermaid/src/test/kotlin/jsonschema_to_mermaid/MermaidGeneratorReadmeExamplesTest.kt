@@ -73,6 +73,7 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         mermaid shouldContain "class ComplexExample"
         mermaid shouldContain "String id [0..1]"
         mermaid shouldContain "Map<String,String> metadata [0..1]"
+        mermaid shouldContain "Map<String,Number> attributes [0..1]"
         mermaid shouldContain "class Address"
         mermaid shouldContain "String street [0..1]"
         mermaid shouldContain "String city [0..1]"
@@ -124,5 +125,15 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         parentFieldCount shouldBe 1
         childFieldCount shouldBe 1
         grandchildFieldCount shouldBe 1
+    }
+
+    test("PatternProperties: attributes field renders as Map<String,Number>") {
+        val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/pattern_properties.schema.json")))
+        val mermaid = MermaidGenerator.generate(schemas)
+        mermaid shouldContain "class PatternPropertiesExample"
+        // Only the first pattern is used for type inference (should be Number)
+        mermaid shouldContain "Map<String,Number> attributes"
+        // Should not render Map<String,Boolean> (second pattern is ignored)
+        mermaid shouldNotContain "Map<String,Boolean>"
     }
 })

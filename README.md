@@ -239,6 +239,7 @@ classDiagram
   class ComplexExample {
     String id [0..1]
     Map<String,String> metadata [0..1]
+    Map<String,Number> attributes [0..1]
   }
   class Address {
     String street [0..1]
@@ -300,6 +301,10 @@ classDiagram
 - Arrays may be shown as X[] or as relationships with multiplicity "*".
 - Inline anonymous objects are often pulled out into named classes by the generator.
 - `$ref` leads to class reuse and may produce aggregation (`o--`) or association (`-->`).
+
+## Limitations
+
+- **patternProperties**: Only the first pattern is used for type inference in the generated Mermaid diagram. If multiple patterns are present, only one will be reflected in the field type (e.g., `Map<String,Number>`). Distinct visualization for multiple patterns is not currently supported.
 
 ## Usage
 

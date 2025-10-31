@@ -9,6 +9,7 @@ data class Property(
     val properties: Map<String, Property>? = mapOf(),
     val enum: List<String>? = null,
     val additionalProperties: Any? = null,
+    val patternProperties: Map<String, Property>? = null,
     val allOf: List<Property>? = null,
     val oneOf: List<Property>? = null,
     val anyOf: List<Property>? = null,
