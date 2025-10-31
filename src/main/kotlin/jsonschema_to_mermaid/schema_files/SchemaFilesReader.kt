@@ -122,6 +122,7 @@ object SchemaFilesReader {
     }
 
     // Parse JSON schema and return both the Schema object and the root map
+    @Suppress("UNCHECKED_CAST")
     private fun parseJsonSchemaWithMap(path: Path): Pair<Schema, Map<String, Any>> {
         return try {
             FileReader(path.toFile()).use { fileReader ->

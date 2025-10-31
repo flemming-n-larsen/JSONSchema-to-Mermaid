@@ -60,8 +60,8 @@ object MermaidGenerator {
                 ensureClassEntry(classProperties, className)
                 definitionSchema.properties?.forEach { (propertyName, property) ->
                     val isRequired = definitionSchema.required?.contains(propertyName) == true
-                    // Suppress inline enum formatting inside definitions to satisfy test expectations
-                    mapPropertyToClass(property, propertyName, classProperties[className]!!, preferences, isRequired, className, enumNotes, enumClasses, suppressInlineEnum = true)
+                    // Previously suppressed inline enum formatting inside definitions; now allow for consistency
+                    mapPropertyToClass(property, propertyName, classProperties[className]!!, preferences, isRequired, className, enumNotes, enumClasses, suppressInlineEnum = false)
                     addRelationForDefinitionProperty(className, propertyName, property, relations, preferences)
                 }
             }

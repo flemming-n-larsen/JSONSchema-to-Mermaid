@@ -2,12 +2,16 @@
 
 This file lists remaining tasks identified during the review that have NOT yet been addressed. Ordered by priority (highest first). Completed fixes such as inheritance arrow direction, hiding inherited fields, transitive inheritance handling, cycle detection, and improved error messages are intentionally excluded.
 
-## 🔴 Priority: Must Fix Before Public Release
+## ✅ Completed Since Last Review
 
-2. Enum Rendering Absent
-   - Problem: Enums appear only as primitive fields; no differentiation.
-   - Action: Provide configuration: inline `{A|B|C}`, note, or separate `<<enumeration>>` class.
-   - Acceptance: Test ensures enum values surface in diagram consistently.
+2. Enum Rendering Implemented
+   - Added enum rendering modes: inline (`{A|B|C}`), note, and separate `<<enumeration>>` class.
+   - CLI flag `--enum-style` introduced (values: `inline`, `note`, `class`).
+   - Generator supports enums in top-level schemas, nested objects, arrays (item enums), and definitions.
+   - Tests: `MermaidGeneratorReadmeExamplesTest` covers all three styles; `AppEnumStyleCliTest` validates CLI output. ProductCatalog example updated to show inline enum in definitions.
+   - README updated with an "Enum Rendering Styles" section and updated ProductCatalog Mermaid output.
+
+## 🔴 Priority: Must Fix Before Public Release
 
 3. Remove / Justify Unused Dependency `net.pwall.json:json-kotlin-schema`
    - Problem: Present in `build.gradle.kts` but not referenced in code.
@@ -127,7 +131,7 @@ This file lists remaining tasks identified during the review that have NOT yet b
 1. Required semantics correction.
 2. allOf inline merge.
 3. patternProperties decision & README limitations.
-4. enum rendering (inline variant minimal).
+4. enum rendering (inline variant minimal). — DONE
 5. Remove unused dependency.
 6. Add CLI flags for arrays/required/enum styles.
 7. Golden snapshot tests.
@@ -136,4 +140,4 @@ This file lists remaining tasks identified during the review that have NOT yet b
 10. External refs expansion (optional for initial release).
 
 ---
-Generated: 2025-10-31
+Generated: 2025-10-31 (updated enum rendering status)

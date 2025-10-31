@@ -59,11 +59,13 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         mermaid shouldContain "+String name"
         mermaid shouldContain "+Money price"
         mermaid shouldContain "class Money"
-        mermaid shouldContain "+String currency"
+        mermaid shouldContain "+{USD|EUR|GBP} currency" // inline enum rendering for required field
         mermaid shouldContain "+Number amount"
         // Ensure required fields not suffixed with [0..1]
         mermaid shouldNotContain "+String id [0..1]"
         mermaid shouldNotContain "+Money price [0..1]"
+        mermaid shouldNotContain "+{USD|EUR|GBP} currency [0..1]"
+        mermaid shouldNotContain "+String currency" // old expectation removed
         mermaid shouldContain "ProductCatalog \"1\" --> \"*\" Product : products"
         mermaid shouldContain "Product o-- Money : price"
     }

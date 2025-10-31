@@ -22,6 +22,7 @@ jsonschema-to-mermaid [OPTIONS] [<source>] [<output>]
 - `-s, --source FILE`      Input schema file (relative to directory or CWD)
 - `-d, --source-dir DIR`   Directory with schema files (default: current directory)
 - `-o, --output FILE`      Output file
+- `--enum-style STYLE`     Enum rendering style: `inline` (default), `note`, or `class`
 - `-h, --help`             Show help
 - `-V, --version`          Show version
 - `--no-classdiagram-header`  Suppress the `classDiagram` header in Mermaid output. Useful for embedding the diagram body in a larger Mermaid document or when the header is added automatically by another tool.
@@ -199,7 +200,7 @@ classDiagram
     +Money price
   }
   class Money {
-    +String currency
+    +{USD|EUR|GBP} currency
     +Number amount
   }
 
@@ -333,6 +334,42 @@ classDiagram
 - Arrays may be shown as X[] or as relationships with multiplicity "*".
 - Inline anonymous objects are often pulled out into named classes by the generator.
 - `$ref` leads to class reuse and may produce aggregation (`o--`) or association (`-->`).
+- Enums are rendered inline by default. Use `--enum-style note` or `--enum-style class` for alternative representations.
+
+## Enum Rendering Styles
+
+You can control how enum values appear using the `--enum-style` flag:
+
+1. Inline (default): Field type becomes `{A|B|C}`
+   ```mermaid
+   class Example {
+     +{A|B|C} status
+   }
+   ```
+   CLI: `jsonschema-to-mermaid schema.json --enum-style inline`
+
+2. Note: Field rendered normally; enum values added as a Mermaid note attached to the class.
+   ```mermaid
+   class Example {
+     +String status
+   }
+   note for Example "status: A, B, C"
+   ```
+   CLI: `jsonschema-to-mermaid schema.json --enum-style note`
+
+3. Class: Separate `<<enumeration>>` class with each value as a literal.
+   ```mermaid
+   class Example {
+     +StatusEnum status
+   }
+   class StatusEnum {
+     A
+     B
+     C
+   }
+   <<enumeration>> StatusEnum
+   ```
+   CLI: `jsonschema-to-mermaid schema.json --enum-style class`
 
 ## Limitations
 
