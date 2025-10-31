@@ -1,5 +1,34 @@
 # Mermaid ClassDiagram Generator
-Generates Mermaid class diagrams from JsonSchema files
+
+**Mermaid ClassDiagram Generator** is a command-line tool that converts
+[JSON Schema](https://json-schema.org/understanding-json-schema/about) (JSON or YAML) files  into
+[Mermaid](https://mermaid-js.github.io/) class diagrams.
+This helps you visualize data models, document APIs, and understand complex schema structures quickly and easily.
+
+## Usage
+
+You can run the generator directly from the command line. The tool reads a JSON Schema file and outputs a Mermaid class
+diagram to standard output or a file.
+
+### Basic usage
+
+```sh
+jsonschema-to-mermaid path/to/schema.json
+```
+
+Or for YAML:
+
+```sh
+jsonschema-to-mermaid path/to/schema.yaml
+```
+
+### Example
+
+```sh
+jsonschema-to-mermaid examples/bookstore/bookstore.schema.json -o bookstore.mmd
+```
+
+This command reads the `bookstore.schema.json` file and writes the generated Mermaid diagram to `bookstore.mmd`.
 
 ## Examples
 
@@ -305,10 +334,6 @@ classDiagram
 ## Limitations
 
 - **patternProperties**: Only the first pattern is used for type inference in the generated Mermaid diagram. If multiple patterns are present, only one will be reflected in the field type (e.g., `Map<String,Number>`). Distinct visualization for multiple patterns is not currently supported.
-
-## Usage
-
-See the project scripts in `build/scripts` or the generated CLI in `build/scripts/jsonschema-to-mermaid` for how to run this generator against a schema file and get Mermaid markdown as output.
 
 ## Contributing examples
 If you add additional examples, please include:
