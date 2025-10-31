@@ -7,6 +7,7 @@ import com.github.ajalt.clikt.parameters.arguments.optional
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.path
+import com.github.ajalt.clikt.parameters.options.flag
 import jsonschema_to_mermaid.schema_files.SchemaFilesReader
 import java.nio.file.Path
 import java.util.Properties
@@ -30,9 +31,7 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
     private val sourcePath: Path? by argument("source", help = "Path to the input JSON Schema file or directory (positional, optional; use for convenience or backward compatibility)").path(mustExist = true).optional()
     private val outputPathArg: Path? by argument("output", help = "Optional output file path").path().optional()
     private val outputPath: Path? by option("-o", "--output", help = "Write output to FILE instead of stdout").path()
-    // The following options are documented but not yet supported in the generator implementation:
-    // private val root: String? by option("-r", "--root", help = "Use NAME as the root definition")
-    // private val noHeader: Boolean by option("--no-header", help = "Suppress the Mermaid header in output").flag(default = false)
+    private val noClassDiagramHeader: Boolean by option("--no-classdiagram-header", help = "Suppress the 'classDiagram' header in Mermaid output").flag(default = false)
     init {
         versionOption(loadVersionFromProperties())
     }
@@ -131,7 +130,7 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
         schemas: List<jsonschema_to_mermaid.schema_files.SchemaFileInfo>
     ): String {
         return try {
-            MermaidGenerator.generate(schemas)
+            MermaidGenerator.generate(schemas, noClassDiagramHeader = noClassDiagramHeader)
         } catch (e: Exception) {
             echo("Failed to generate Mermaid: ${e.message}", err = true)
             e.printStackTrace()

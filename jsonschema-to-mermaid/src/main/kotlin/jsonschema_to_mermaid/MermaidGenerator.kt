@@ -22,13 +22,13 @@ object MermaidGenerator {
      * @param preferences Preferences for diagram generation.
      * @return Mermaid class diagram as a string.
      */
-    fun generate(schemaFiles: Collection<SchemaFileInfo>, preferences: Preferences = Preferences()): String {
+    fun generate(schemaFiles: Collection<SchemaFileInfo>, noClassDiagramHeader: Boolean = false, preferences: Preferences = Preferences()): String {
         loadedSchemas = schemaFiles.toList()
         val classProperties = linkedMapOf<String, MutableList<String>>()
         val relations = mutableListOf<String>()
         processDefinitions(schemaFiles, classProperties, relations, preferences)
         processTopLevelSchemas(schemaFiles, classProperties, relations, preferences)
-        return buildOutput(classProperties, relations)
+        return buildOutput(classProperties, relations, noClassDiagramHeader)
     }
 
     /**
@@ -386,9 +386,9 @@ object MermaidGenerator {
         if (!classProperties.containsKey(className)) classProperties[className] = mutableListOf()
     }
 
-    private fun buildOutput(classProperties: Map<String, List<String>>, relations: List<String>): String {
+    private fun buildOutput(classProperties: Map<String, List<String>>, relations: List<String>, noClassDiagramHeader: Boolean = false): String {
         val sb = StringBuilder()
-        sb.append("classDiagram\n")
+        if (!noClassDiagramHeader) sb.append("classDiagram\n")
         classProperties.forEach { (className, properties) ->
             sb.append("  class $className {\n")
             properties.forEach { sb.append("    $it\n") }

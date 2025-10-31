@@ -136,4 +136,13 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         // Should not render Map<String,Boolean> (second pattern is ignored)
         mermaid shouldNotContain "Map<String,Boolean>"
     }
+
+    test("noClassDiagramHeader omits classDiagram header") {
+        val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/person.schema.json")))
+        val mermaid = MermaidGenerator.generate(schemas, noClassDiagramHeader = true)
+        mermaid shouldNotContain "classDiagram"
+        mermaid shouldContain "class Person"
+        mermaid shouldContain "+Integer id"
+        mermaid shouldContain "+String name"
+    }
 })

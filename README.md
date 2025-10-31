@@ -24,6 +24,7 @@ jsonschema-to-mermaid [OPTIONS] [<source>] [<output>]
 - `-o, --output FILE`      Output file
 - `-h, --help`             Show help
 - `-V, --version`          Show version
+- `--no-classdiagram-header`  Suppress the `classDiagram` header in Mermaid output. Useful for embedding the diagram body in a larger Mermaid document or when the header is added automatically by another tool.
 
 **Behavior:**
 - If both `--source` and `--source-dir` are set, the file is taken from the directory.
