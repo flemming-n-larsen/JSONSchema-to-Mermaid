@@ -66,16 +66,18 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
     }
 
     override fun run() {
-        val cliService = CliService(
-            sourceFileOption,
-            sourceDirOption,
-            sourcePath,
-            outputPathArg,
-            outputPath,
-            noClassDiagramHeader,
-            enumStyleOption,
-            { msg, _ -> echo(msg) }
+        val options = CliOptions(
+            sourceFileOption = sourceFileOption,
+            sourceDirOption = sourceDirOption,
+            sourcePath = sourcePath,
+            outputPathArg = outputPathArg,
+            outputPath = outputPath,
+            noClassDiagramHeader = noClassDiagramHeader,
+            enumStyleOption = enumStyleOption
         )
+        val cliService = CliService(
+            options
+        ) { msg, _ -> echo(msg) }
         cliService.execute()
     }
 }
