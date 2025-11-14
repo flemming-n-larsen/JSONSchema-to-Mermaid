@@ -71,7 +71,7 @@ object SchemaFilesReader {
             val requiredStrings = (defMap?.get("required") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
             val fixedProps = defSchema.properties?.mapValues { (propName, prop) ->
                 val propMap = (defMap?.get("properties") as? Map<*, *>)?.get(propName) as? Map<*, *>
-                fixRequiredRecursively(prop, propMap) ?: prop
+                PropertyRequiredFixer.fixRequiredRecursively(prop, propMap) ?: prop
             }
             defSchema.copy(
                 properties = fixedProps,
@@ -80,7 +80,7 @@ object SchemaFilesReader {
         }
         val fixedTopLevelProperties = resolved.properties?.mapValues { (propName, prop) ->
             val propMap = (rootMap["properties"] as? Map<*, *>)?.get(propName) as? Map<*, *>
-            fixRequiredRecursively(prop, propMap) ?: prop
+            PropertyRequiredFixer.fixRequiredRecursively(prop, propMap) ?: prop
         }
         return resolved.copy(definitions = fixedDefinitions, properties = fixedTopLevelProperties)
     }
@@ -143,76 +143,13 @@ object SchemaFilesReader {
         val childOwnProps = schema.properties?.keys ?: emptySet()
         val inheritedForChild = ((baseOwnProps + baseInherited) - childOwnProps).toList().sorted()
         return schema.copy(
-            properties = mergeMaps(baseSchema.properties, schema.properties),
-            required = mergeLists(baseSchema.required, schema.required) ?: emptyList(),
-            definitions = mergeMaps(baseSchema.definitions, schema.definitions),
+            properties = SchemaMergeUtils.mergeMaps(baseSchema.properties, schema.properties),
+            required = SchemaMergeUtils.mergeLists(baseSchema.required, schema.required) ?: emptyList(),
+            definitions = SchemaMergeUtils.mergeMaps(baseSchema.definitions, schema.definitions),
             inheritedPropertyNames = inheritedForChild,
         )
     }
 }
-
-/**
- * Recursively fixes the required fields for a property and its children, using the original map.
- */
-private fun fixRequiredRecursively(
-    property: jsonschema_to_mermaid.jsonschema.Property?,
-    map: Map<*, *>?
-): jsonschema_to_mermaid.jsonschema.Property? {
-    if (property == null || map == null) return property
-    val requiredList = (map["required"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
-    val fixedProperties = property.properties?.mapValues { (k, v) ->
-        val propMap = (map["properties"] as? Map<*, *>)?.get(k) as? Map<*, *>
-        fixRequiredRecursively(v, propMap)
-    }?.filterValues { it != null }?.mapValues { it.value!! }
-    val fixedPatternProperties = property.patternProperties?.mapValues { (k, v) ->
-        val patMap = (map["patternProperties"] as? Map<*, *>)?.get(k) as? Map<*, *>
-        fixRequiredRecursively(v, patMap)
-    }?.filterValues { it != null }?.mapValues { it.value!! }
-    val fixedItems = property.items?.let {
-        val itemsMap = map["items"] as? Map<*, *>
-        fixRequiredRecursively(it, itemsMap)
-    }
-    val fixedAllOf = property.allOf?.mapIndexed { idx, p ->
-        val allOfList = map["allOf"] as? List<*>
-        val allOfMap = allOfList?.getOrNull(idx) as? Map<*, *>
-        fixRequiredRecursively(p, allOfMap)
-    }?.filterNotNull()
-    val fixedOneOf = property.oneOf?.mapIndexed { idx, p ->
-        val oneOfList = map["oneOf"] as? List<*>
-        val oneOfMap = oneOfList?.getOrNull(idx) as? Map<*, *>
-        fixRequiredRecursively(p, oneOfMap)
-    }?.filterNotNull()
-    val fixedAnyOf = property.anyOf?.mapIndexed { idx, p ->
-        val anyOfList = map["anyOf"] as? List<*>
-        val anyOfMap = anyOfList?.getOrNull(idx) as? Map<*, *>
-        fixRequiredRecursively(p, anyOfMap)
-    }?.filterNotNull()
-    return property.copy(
-        required = requiredList,
-        properties = fixedProperties,
-        patternProperties = fixedPatternProperties,
-        items = fixedItems,
-        allOf = fixedAllOf,
-        oneOf = fixedOneOf,
-        anyOf = fixedAnyOf
-    )
-}
-
-private fun <K, V> mergeMaps(base: Map<K, V>?, override: Map<K, V>?): Map<K, V>? =
-    when {
-        base == null && override == null -> null
-        base == null -> override
-        override == null -> base
-        else -> base + override
-    }
-
-private fun <T> mergeLists(base: List<T>?, override: List<T>?): List<T>? =
-    when {
-        base == null && override == null -> null
-        base == null -> override
-        override == null -> base
-        else -> (base + override).distinct()
-    }
 
 private fun formatCycleMessage(visiting: Set<Path>, current: Path): String {
     val chain = (visiting.toList() + current).joinToString(" -> ") { it.toAbsolutePath().toString() }
@@ -223,4 +160,85 @@ private fun getFileExtension(path: Path): String {
     val fileName = path.fileName.toString()
     val lastDot = fileName.lastIndexOf('.')
     return if (lastDot > 0) fileName.substring(lastDot + 1).lowercase() else ""
+}
+
+/**
+ * Utility object for merging schema maps and lists.
+ */
+object SchemaMergeUtils {
+    fun <K, V> mergeMaps(base: Map<K, V>?, override: Map<K, V>?): Map<K, V>? =
+        when {
+            base == null && override == null -> null
+            base == null -> override
+            override == null -> base
+            else -> base + override
+        }
+
+    fun <T> mergeLists(base: List<T>?, override: List<T>?): List<T>? =
+        when {
+            base == null && override == null -> null
+            base == null -> override
+            override == null -> base
+            else -> (base + override).distinct()
+        }
+}
+
+/**
+ * Singleton for recursively fixing required fields in properties and their children.
+ */
+object PropertyRequiredFixer {
+    fun fixRequiredRecursively(
+        property: jsonschema_to_mermaid.jsonschema.Property?,
+        map: Map<*, *>?
+    ): jsonschema_to_mermaid.jsonschema.Property? {
+        if (property == null || map == null) return property
+        val requiredList = extractRequiredList(map)
+        val fixedProperties = fixProperties(property, map)
+        val fixedPatternProperties = fixPatternProperties(property, map)
+        val fixedItems = fixItems(property, map)
+        val fixedAllOf = fixCombinator(property.allOf, map, "allOf")
+        val fixedOneOf = fixCombinator(property.oneOf, map, "oneOf")
+        val fixedAnyOf = fixCombinator(property.anyOf, map, "anyOf")
+        return property.copy(
+            required = requiredList,
+            properties = fixedProperties,
+            patternProperties = fixedPatternProperties,
+            items = fixedItems,
+            allOf = fixedAllOf,
+            oneOf = fixedOneOf,
+            anyOf = fixedAnyOf
+        )
+    }
+
+    private fun extractRequiredList(map: Map<*, *>): List<String> =
+        (map["required"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+
+    private fun fixProperties(property: jsonschema_to_mermaid.jsonschema.Property, map: Map<*, *>): Map<String, jsonschema_to_mermaid.jsonschema.Property>? =
+        property.properties?.mapValues { (k, v) ->
+            val propMap = (map["properties"] as? Map<*, *>)?.get(k) as? Map<*, *>
+            fixRequiredRecursively(v, propMap)
+        }?.filterValues { it != null }?.mapValues { it.value!! }
+
+    private fun fixPatternProperties(property: jsonschema_to_mermaid.jsonschema.Property, map: Map<*, *>): Map<String, jsonschema_to_mermaid.jsonschema.Property>? =
+        property.patternProperties?.mapValues { (k, v) ->
+            val patMap = (map["patternProperties"] as? Map<*, *>)?.get(k) as? Map<*, *>
+            fixRequiredRecursively(v, patMap)
+        }?.filterValues { it != null }?.mapValues { it.value!! }
+
+    private fun fixItems(property: jsonschema_to_mermaid.jsonschema.Property, map: Map<*, *>): jsonschema_to_mermaid.jsonschema.Property? =
+        property.items?.let {
+            val itemsMap = map["items"] as? Map<*, *>
+            fixRequiredRecursively(it, itemsMap)
+        }
+
+    private fun fixCombinator(
+        combinator: List<jsonschema_to_mermaid.jsonschema.Property>?,
+        map: Map<*, *>?,
+        key: String
+    ): List<jsonschema_to_mermaid.jsonschema.Property>? =
+        combinator?.mapIndexed { idx, p ->
+            val list = map?.get(key) as? List<*>
+            val subMap = list?.getOrNull(idx) as? Map<*, *>
+            fixRequiredRecursively(p, subMap)
+        }?.filterNotNull()
 }
