@@ -151,3 +151,4 @@ java -jar jsonschema-to-mermaid/build/libs/jsonschema-to-mermaid.jar src/main/re
 - Limit the number of input parameters on any method to 6.
 - If a method requires more than 6 parameters, group related parameters into a context or data class.
 - This improves readability, maintainability, and reduces the risk of errors.
+
