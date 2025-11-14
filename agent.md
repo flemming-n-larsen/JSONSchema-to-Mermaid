@@ -122,3 +122,9 @@ java -jar jsonschema-to-mermaid/build/libs/jsonschema-to-mermaid.jar src/main/re
 4. If changing rendering, include a snapshot-style assertion of a small Mermaid output to catch regressions.
 5. Open a PR with a short description and link to the added/changed tests.
 6. Optionally, update this brief if the project scope or behavior changes significantly.
+
+# Agent Coding Policy
+
+- You MUST always run `./gradlew clean test` as the very last thing before claiming you are done implementing a feature,
+  fixing a bug, or resolving a compiler error. This ensures the codebase compiles and all tests pass after your changes.
+- Never claim a task is complete until this command has been run and verified.
