@@ -22,6 +22,17 @@ data class Preferences(
 )
 
 /**
+ * Context for diagram generation, encapsulating shared state and collections.
+ */
+data class DiagramGenerationContext(
+    val classProperties: MutableMap<String, MutableList<String>>,
+    val relations: MutableList<String>,
+    val preferences: Preferences,
+    val enumNotes: MutableList<Pair<String, String>>,
+    val enumClasses: MutableList<Pair<String, List<String>>>
+)
+
+/**
  * Generates Mermaid class diagrams from JSON Schema files.
  */
 object MermaidGenerator {
@@ -68,14 +79,14 @@ object MermaidGenerator {
         enumNotes: MutableList<Pair<String, String>>,
         enumClasses: MutableList<Pair<String, List<String>>>
     ) {
+        val ctx = DiagramGenerationContext(classProperties, relations, preferences, enumNotes, enumClasses)
         schemaFiles.forEach { schemaFile ->
             schemaFile.schema.definitions?.forEach { (definitionName, definitionSchema) ->
                 val className = sanitizeName(definitionName)
                 ensureClassEntry(classProperties, className)
                 definitionSchema.properties?.forEach { (propertyName, property) ->
                     val isRequired = definitionSchema.required.contains(propertyName)
-                    // Previously suppressed inline enum formatting inside definitions; now allow for consistency
-                    mapPropertyToClass(property, propertyName, classProperties[className]!!, preferences, isRequired, className, enumNotes, enumClasses, suppressInlineEnum = false)
+                    mapPropertyToClass(property, propertyName, className, isRequired, ctx, suppressInlineEnum = false)
                     addRelationForDefinitionProperty(className, propertyName, property, relations, preferences)
                 }
             }
@@ -116,6 +127,7 @@ object MermaidGenerator {
         enumNotes: MutableList<Pair<String, String>>,
         enumClasses: MutableList<Pair<String, List<String>>>
     ) {
+        val ctx = DiagramGenerationContext(classProperties, relations, preferences, enumNotes, enumClasses)
         schemaFiles.forEach { schemaFile ->
             val className = getClassName(schemaFile)
             ensureClassEntry(classProperties, className)
@@ -130,8 +142,8 @@ object MermaidGenerator {
 
                 val isRequired = schemaFile.schema.required.contains(propertyName)
 
-                if (handleCompositionKeywords(classProperties, className, propertyName, property, relations, preferences, enumNotes, enumClasses)) return@forEach
-                if (handleOneOrAnyOf(classProperties, className, propertyName, property, relations, preferences, enumNotes, enumClasses)) return@forEach
+                if (handleCompositionKeywords(className, propertyName, property, ctx)) return@forEach
+                if (handleOneOrAnyOf(className, propertyName, property, ctx)) return@forEach
 
                 // Maps (additionalProperties)
                 if (property.additionalProperties != null) {
@@ -145,7 +157,7 @@ object MermaidGenerator {
                     return@forEach
                 }
 
-                handleTopLevelProperty(schemaFile, className, propertyName, property, classProperties, relations, preferences, isRequired, enumNotes, enumClasses)
+                handleTopLevelProperty(schemaFile, className, propertyName, property, isRequired, ctx)
             }
         }
     }
@@ -205,18 +217,14 @@ object MermaidGenerator {
         className: String,
         propertyName: String,
         property: Property,
-        classProperties: MutableMap<String, MutableList<String>>,
-        relations: MutableList<String>,
-        preferences: Preferences,
         isRequired: Boolean,
-        enumNotes: MutableList<Pair<String, String>>,
-        enumClasses: MutableList<Pair<String, List<String>>>
+        ctx: DiagramGenerationContext
     ) {
         when {
-            property.`$ref` != null -> relations.add(formatRelation(className, refToClassName(property.`$ref`), if (isRequired) "1" else "0..1", "1", propertyName, "-->"))
-            property.type == "array" && preferences.arraysAsRelation -> handleTopLevelArray(schemaFile, className, propertyName, property, classProperties, relations, preferences, isRequired, enumNotes, enumClasses)
-            property.type == "object" -> handleTopLevelObject(className, propertyName, property, classProperties, relations, preferences, isRequired, enumNotes, enumClasses)
-            else -> mapPropertyToClass(property, propertyName, classProperties[className]!!, preferences, isRequired, className, enumNotes, enumClasses)
+            property.`$ref` != null -> ctx.relations.add(formatRelation(className, refToClassName(property.`$ref`), if (isRequired) "1" else "0..1", "1", propertyName, "-->"))
+            property.type == "array" && ctx.preferences.arraysAsRelation -> handleTopLevelArray(schemaFile, className, propertyName, property, isRequired, ctx)
+            property.type == "object" -> handleTopLevelObject(className, propertyName, property, isRequired, ctx)
+            else -> mapPropertyToClass(property, propertyName, className, isRequired, ctx)
         }
     }
 
@@ -225,63 +233,52 @@ object MermaidGenerator {
         className: String,
         propertyName: String,
         property: Property,
-        classProperties: MutableMap<String, MutableList<String>>,
-        relations: MutableList<String>,
-        preferences: Preferences,
         isRequired: Boolean,
-        enumNotes: MutableList<Pair<String, String>>,
-        enumClasses: MutableList<Pair<String, List<String>>>
+        ctx: DiagramGenerationContext
     ) {
         val items = property.items
         if (items?.`$ref` != null) {
-            relations.add(formatRelation(className, refToClassName(items.`$ref`), "1", "*", propertyName, "-->"))
+            ctx.relations.add(formatRelation(className, refToClassName(items.`$ref`), "1", "*", propertyName, "-->"))
         } else if (items?.type == "object") {
             val base = if (propertyName.endsWith("s")) propertyName.dropLast(1) else propertyName
             val parent = className.trim().ifEmpty { getClassName(schemaFile) }
             val target = parent + sanitizeName(base).replaceFirstChar { it.uppercaseChar() }
-            ensureClassEntry(classProperties, target)
+            ensureClassEntry(ctx.classProperties, target)
             val itemProperties = items.properties ?: emptyMap()
             itemProperties.forEach { (innerPropertyName, innerProperty) ->
                 val subRequired = items.required.contains(innerPropertyName)
-                mapPropertyToClass(innerProperty, innerPropertyName, classProperties[target]!!, preferences, subRequired, target, enumNotes, enumClasses)
+                mapPropertyToClass(innerProperty, innerPropertyName, target, subRequired, ctx)
             }
-            relations.add(formatRelation(className, target, "1", "*", propertyName, "-->"))
+            ctx.relations.add(formatRelation(className, target, "1", "*", propertyName, "-->"))
         } else {
-            classProperties[className]!!.add(formatArrayField(propertyName, items, isRequired))
+            ctx.classProperties[className]!!.add(formatArrayField(propertyName, items, isRequired))
         }
     }
 
+    // ---- Helper methods for top-level object, composition, and oneOf/anyOf ----
     private fun handleTopLevelObject(
         className: String,
         propertyName: String,
         property: Property,
-        classProperties: MutableMap<String, MutableList<String>>,
-        relations: MutableList<String>,
-        preferences: Preferences,
         isRequired: Boolean,
-        enumNotes: MutableList<Pair<String, String>>,
-        enumClasses: MutableList<Pair<String, List<String>>>
+        ctx: DiagramGenerationContext
     ) {
         val target = sanitizeName(propertyName)
-        ensureClassEntry(classProperties, target)
+        ensureClassEntry(ctx.classProperties, target)
         val subProperties = property.properties ?: emptyMap()
         subProperties.forEach { (innerPropertyName, innerProperty) ->
             val subRequired = property.required.contains(innerPropertyName)
-            mapPropertyToClass(innerProperty, innerPropertyName, classProperties[target]!!, preferences, subRequired, target, enumNotes, enumClasses)
+            mapPropertyToClass(innerProperty, innerPropertyName, target, subRequired, ctx)
         }
         val multiplicity = if (isRequired) "1" else "0..1"
-        relations.add(formatRelation(className, target, multiplicity, "1", propertyName, "-->"))
+        ctx.relations.add(formatRelation(className, target, multiplicity, "1", propertyName, "-->"))
     }
 
     private fun handleCompositionKeywords(
-        classProperties: MutableMap<String, MutableList<String>>,
         className: String,
         propertyName: String,
         property: Property,
-        relations: MutableList<String>,
-        preferences: Preferences,
-        enumNotes: MutableList<Pair<String, String>>,
-        enumClasses: MutableList<Pair<String, List<String>>>
+        ctx: DiagramGenerationContext
     ): Boolean {
         if (!property.allOf.isNullOrEmpty()) {
             val refs = property.allOf.filter { it.`$ref` != null }
@@ -289,14 +286,14 @@ object MermaidGenerator {
             var handled = false
             if (refs.isNotEmpty()) {
                 refs.forEach { r ->
-                    relations.add(formatRelation(className, refToClassName(r.`$ref`), "1", "1", propertyName, "-->"))
+                    ctx.relations.add(formatRelation(className, refToClassName(r.`$ref`), "1", "1", propertyName, "-->"))
                 }
                 handled = true
             }
             if (inlines.isNotEmpty()) {
                 inlines.forEach { inline ->
                     inline.properties?.forEach { (inlinePropName, inlineProp) ->
-                        mapPropertyToClass(inlineProp, inlinePropName, classProperties[className]!!, preferences, inline.required.contains(inlinePropName), className, enumNotes, enumClasses)
+                        mapPropertyToClass(inlineProp, inlinePropName, className, inline.required.contains(inlinePropName), ctx)
                     }
                 }
                 handled = true
@@ -307,29 +304,25 @@ object MermaidGenerator {
     }
 
     private fun handleOneOrAnyOf(
-        classProperties: MutableMap<String, MutableList<String>>,
         className: String,
         propertyName: String,
         property: Property,
-        relations: MutableList<String>,
-        preferences: Preferences,
-        enumNotes: MutableList<Pair<String, String>>,
-        enumClasses: MutableList<Pair<String, List<String>>>
+        ctx: DiagramGenerationContext
     ): Boolean {
         fun processMembers(members: List<Property>?, label: String): Boolean {
             if (members.isNullOrEmpty()) return false
             members.forEach { member ->
                 when {
-                    member.`$ref` != null -> relations.add(formatRelation(className, refToClassName(member.`$ref`), "1", "1", "$propertyName ($label)", "-->"))
+                    member.`$ref` != null -> ctx.relations.add(formatRelation(className, refToClassName(member.`$ref`), "1", "1", "$propertyName ($label)", "-->"))
                     member.type == "object" -> {
                         val target = sanitizeName(propertyName) + "-option"
-                        ensureClassEntry(classProperties, target)
+                        ensureClassEntry(ctx.classProperties, target)
                         val subProperties = member.properties ?: emptyMap()
                         subProperties.forEach { (innerPropertyName, innerProperty) ->
                             val subRequired = member.required.contains(innerPropertyName)
-                            mapPropertyToClass(innerProperty, innerPropertyName, classProperties[target]!!, preferences, subRequired, target, enumNotes, enumClasses)
+                            mapPropertyToClass(innerProperty, innerPropertyName, target, subRequired, ctx)
                         }
-                        relations.add(formatRelation(className, target, "1", "1", "$propertyName ($label)", "-->"))
+                        ctx.relations.add(formatRelation(className, target, "1", "1", "$propertyName ($label)", "-->"))
                     }
                 }
             }
@@ -338,18 +331,18 @@ object MermaidGenerator {
         return processMembers(property.oneOf, "oneOf") || processMembers(property.anyOf, "anyOf")
     }
 
-    // ---- Mapping & formatting ----
     private fun mapPropertyToClass(
         property: Property,
         propertyName: String,
-        targetProperties: MutableList<String>,
-        preferences: Preferences,
-        isRequired: Boolean,
         currentClassName: String,
-        enumNotes: MutableList<Pair<String, String>>,
-        enumClasses: MutableList<Pair<String, List<String>>>,
+        isRequired: Boolean,
+        ctx: DiagramGenerationContext,
         suppressInlineEnum: Boolean = false,
     ) {
+        val targetProperties = ctx.classProperties[currentClassName]!!
+        val preferences = ctx.preferences
+        val enumNotes = ctx.enumNotes
+        val enumClasses = ctx.enumClasses
         if (property.enum != null && property.enum.isNotEmpty() && !(suppressInlineEnum && preferences.enumStyle == EnumStyle.INLINE)) {
             when (preferences.enumStyle) {
                 EnumStyle.INLINE -> targetProperties.add(formatEnumInlineField(propertyName, property, isRequired))
