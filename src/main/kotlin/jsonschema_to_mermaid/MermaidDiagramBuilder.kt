@@ -2,10 +2,10 @@ package jsonschema_to_mermaid
 
 import jsonschema_to_mermaid.jsonschema.Property
 import jsonschema_to_mermaid.schema_files.SchemaFileInfo
-import jsonschema_to_mermaid.MermaidGeneratorUtils.primitiveTypeName
-import jsonschema_to_mermaid.MermaidGeneratorUtils.sanitizeName
-import jsonschema_to_mermaid.MermaidGeneratorUtils.getClassName
-import jsonschema_to_mermaid.MermaidGeneratorUtils.refToClassName
+import jsonschema_to_mermaid.TypeNameConverter.primitiveTypeName
+import jsonschema_to_mermaid.NameSanitizer.sanitizeName
+import jsonschema_to_mermaid.ClassNameResolver.getClassName
+import jsonschema_to_mermaid.ClassNameResolver.refToClassName
 
 /**
  * Handles the main logic for building Mermaid diagrams from JSON Schema files.

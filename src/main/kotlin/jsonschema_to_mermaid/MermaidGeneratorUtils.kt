@@ -2,29 +2,90 @@ package jsonschema_to_mermaid
 
 import jsonschema_to_mermaid.schema_files.SchemaFileInfo
 
-object MermaidGeneratorUtils {
+/**
+ * Converts JSON Schema primitive types to their display names in Mermaid diagrams.
+ */
+object TypeNameConverter {
     fun primitiveTypeName(typeOrFormat: String?): String = when (typeOrFormat) {
         "integer" -> "Integer"
         "number" -> "Number"
         "boolean" -> "Boolean"
         "string" -> "String"
         null -> "Object"
-        else -> typeOrFormat.replaceFirstChar { it.uppercaseChar().toString() }
+        else -> capitalizeFirst(typeOrFormat)
     }
 
-    fun sanitizeName(name: String?): String = name?.split(Regex("[^A-Za-z0-9]+")).orEmpty()
-        .filter { it.isNotBlank() }
-        .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
+    private fun capitalizeFirst(value: String): String =
+        value.replaceFirstChar { it.uppercaseChar().toString() }
+}
 
-    fun getClassName(schemaFile: SchemaFileInfo): String =
-        schemaFile.schema.title?.let { sanitizeName(it) }
-            ?: schemaFile.filename?.substringBefore('.')?.let { sanitizeName(it) }
-            ?: "UnknownSchema"
+/**
+ * Sanitizes names to be Mermaid-compatible identifiers.
+ * Removes special characters and converts to PascalCase.
+ */
+object NameSanitizer {
+    private val NON_ALPHANUMERIC_REGEX = Regex("[^A-Za-z0-9]+")
+
+    fun sanitizeName(name: String?): String {
+        if (name == null) return ""
+
+        return name.split(NON_ALPHANUMERIC_REGEX)
+            .filter { it.isNotBlank() }
+            .joinToString("") { capitalizeFirst(it) }
+    }
+
+    private fun capitalizeFirst(word: String): String =
+        word.replaceFirstChar { c -> c.uppercaseChar() }
+}
+
+/**
+ * Resolves class names from schema files and references.
+ */
+object ClassNameResolver {
+    fun getClassName(schemaFile: SchemaFileInfo): String {
+        val fromTitle = schemaFile.schema.title?.let { NameSanitizer.sanitizeName(it) }
+        if (fromTitle != null) return fromTitle
+
+        val fromFilename = schemaFile.filename
+            ?.substringBefore('.')
+            ?.let { NameSanitizer.sanitizeName(it) }
+        if (fromFilename != null) return fromFilename
+
+        return "UnknownSchema"
+    }
 
     fun refToClassName(ref: String?): String {
         if (ref == null) return "UnknownRef"
-        val parts = ref.split('/', '#').filter { it.isNotBlank() }
-        return sanitizeName(parts.lastOrNull() ?: ref)
+
+        val lastPart = extractLastRefPart(ref)
+        return NameSanitizer.sanitizeName(lastPart)
     }
+
+    private fun extractLastRefPart(ref: String): String {
+        val parts = ref.split('/', '#').filter { it.isNotBlank() }
+        return parts.lastOrNull() ?: ref
+    }
+}
+
+/**
+ * Legacy facade for backward compatibility.
+ * @deprecated Use TypeNameConverter, NameSanitizer, or ClassNameResolver directly.
+ */
+@Deprecated(
+    "Use TypeNameConverter, NameSanitizer, or ClassNameResolver directly",
+    ReplaceWith("TypeNameConverter.primitiveTypeName(typeOrFormat)")
+)
+object MermaidGeneratorUtils {
+    fun primitiveTypeName(typeOrFormat: String?): String =
+        TypeNameConverter.primitiveTypeName(typeOrFormat)
+
+    fun sanitizeName(name: String?): String =
+        NameSanitizer.sanitizeName(name)
+
+    fun getClassName(schemaFile: SchemaFileInfo): String =
+        ClassNameResolver.getClassName(schemaFile)
+
+    fun refToClassName(ref: String?): String =
+        ClassNameResolver.refToClassName(ref)
 }
 
