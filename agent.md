@@ -143,3 +143,11 @@ java -jar jsonschema-to-mermaid/build/libs/jsonschema-to-mermaid.jar src/main/re
 - You MUST always run `./gradlew clean test` as the very last thing before claiming you are done implementing a feature,
   fixing a bug, or resolving a compiler error. This ensures the codebase compiles and all tests pass after your changes.
 - Never claim a task is complete until this command has been run and verified.
+
+# Agent Guidelines
+
+## Coding Standards
+
+- Limit the number of input parameters on any method to 6.
+- If a method requires more than 6 parameters, group related parameters into a context or data class.
+- This improves readability, maintainability, and reduces the risk of errors.
