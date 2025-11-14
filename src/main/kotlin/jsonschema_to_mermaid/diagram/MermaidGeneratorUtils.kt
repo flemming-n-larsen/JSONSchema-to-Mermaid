@@ -1,4 +1,4 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.diagram
 
 import jsonschema_to_mermaid.schema_files.SchemaFileInfo
 
@@ -66,26 +66,3 @@ object ClassNameResolver {
         return parts.lastOrNull() ?: ref
     }
 }
-
-/**
- * Legacy facade for backward compatibility.
- * @deprecated Use TypeNameConverter, NameSanitizer, or ClassNameResolver directly.
- */
-@Deprecated(
-    "Use TypeNameConverter, NameSanitizer, or ClassNameResolver directly",
-    ReplaceWith("TypeNameConverter.primitiveTypeName(typeOrFormat)")
-)
-object MermaidGeneratorUtils {
-    fun primitiveTypeName(typeOrFormat: String?): String =
-        TypeNameConverter.primitiveTypeName(typeOrFormat)
-
-    fun sanitizeName(name: String?): String =
-        NameSanitizer.sanitizeName(name)
-
-    fun getClassName(schemaFile: SchemaFileInfo): String =
-        ClassNameResolver.getClassName(schemaFile)
-
-    fun refToClassName(ref: String?): String =
-        ClassNameResolver.refToClassName(ref)
-}
-

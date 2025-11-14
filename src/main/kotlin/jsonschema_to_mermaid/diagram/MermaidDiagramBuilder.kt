@@ -1,5 +1,12 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.diagram
+
 import jsonschema_to_mermaid.schema_files.SchemaFileInfo
+import jsonschema_to_mermaid.relationship.InheritanceHandler
+import jsonschema_to_mermaid.schema.DefinitionProcessor
+import jsonschema_to_mermaid.schema.TopLevelSchemaProcessor
+import jsonschema_to_mermaid.diagram.DiagramOutputBuilder
+import jsonschema_to_mermaid.diagram.Preferences
+import jsonschema_to_mermaid.diagram.DiagramGenerationContext
 /**
  * Handles the main logic for building Mermaid diagrams from JSON Schema files.
  * This is the main entry point that coordinates all diagram generation activities.

@@ -4,7 +4,6 @@ import com.github.ajalt.clikt.core.main
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
-import jsonschema_to_mermaid.App
 import test_util.resourcePath
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream

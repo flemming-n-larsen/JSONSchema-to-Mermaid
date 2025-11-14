@@ -1,8 +1,8 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.relationship
 
 import jsonschema_to_mermaid.schema_files.SchemaFileInfo
-import jsonschema_to_mermaid.ClassNameResolver.getClassName
-import jsonschema_to_mermaid.ClassNameResolver.refToClassName
+import jsonschema_to_mermaid.diagram.ClassNameResolver.getClassName
+import jsonschema_to_mermaid.diagram.ClassNameResolver.refToClassName
 
 /**
  * Handles schema inheritance relationships.
@@ -63,4 +63,3 @@ object InheritanceHandler {
         return inheritedSet.contains(propertyName)
     }
 }
-

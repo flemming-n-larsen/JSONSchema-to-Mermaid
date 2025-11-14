@@ -1,4 +1,4 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.schema
 
 /**
  * Manages class registrations for the diagram.
@@ -11,4 +11,3 @@ object ClassRegistry {
         }
     }
 }
-

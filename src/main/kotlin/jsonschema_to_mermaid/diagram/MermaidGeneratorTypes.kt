@@ -1,4 +1,4 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.diagram
 
 /**
  * Enum rendering style for Mermaid diagrams.
@@ -28,4 +28,3 @@ data class DiagramGenerationContext(
     val enumNotes: MutableList<Pair<String, String>>,
     val enumClasses: MutableList<Pair<String, List<String>>>
 )
-

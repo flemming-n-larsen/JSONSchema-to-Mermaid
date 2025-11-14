@@ -1,6 +1,11 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.schema
 
-import jsonschema_to_mermaid.NameSanitizer.sanitizeName
+import jsonschema_to_mermaid.diagram.ClassNameResolver
+import jsonschema_to_mermaid.diagram.DiagramGenerationContext
+import jsonschema_to_mermaid.diagram.NameSanitizer
+import jsonschema_to_mermaid.schema.PropertyMapper
+import jsonschema_to_mermaid.diagram.PropertyFormatter
+import jsonschema_to_mermaid.relationship.RelationshipBuilder
 import jsonschema_to_mermaid.schema_files.SchemaFileInfo
 
 /**
@@ -31,7 +36,7 @@ object DefinitionProcessor {
         definitionSchema: jsonschema_to_mermaid.jsonschema.Schema,
         ctx: DiagramGenerationContext
     ) {
-        val className = sanitizeName(definitionName)
+        val className = NameSanitizer.sanitizeName(definitionName)
         ClassRegistry.ensureClassEntry(ctx.classProperties, className)
 
         definitionSchema.properties?.forEach { (propertyName, property) ->
@@ -88,4 +93,3 @@ object DefinitionProcessor {
         }
     }
 }
-

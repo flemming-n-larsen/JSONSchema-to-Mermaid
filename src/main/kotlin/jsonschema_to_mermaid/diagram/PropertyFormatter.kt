@@ -1,7 +1,7 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.diagram
 
-import jsonschema_to_mermaid.TypeNameConverter.primitiveTypeName
-import jsonschema_to_mermaid.ClassNameResolver.refToClassName
+import jsonschema_to_mermaid.diagram.TypeNameConverter.primitiveTypeName
+import jsonschema_to_mermaid.diagram.ClassNameResolver.refToClassName
 import jsonschema_to_mermaid.jsonschema.Property
 
 /**
@@ -90,4 +90,3 @@ object PropertyFormatter {
         }
     }
 }
-

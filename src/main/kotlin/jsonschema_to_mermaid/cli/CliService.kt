@@ -1,7 +1,10 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.cli
 
 import jsonschema_to_mermaid.schema_files.SchemaFileInfo
 import jsonschema_to_mermaid.schema_files.SchemaFilesReader
+import jsonschema_to_mermaid.diagram.Preferences
+import jsonschema_to_mermaid.diagram.EnumStyle
+import jsonschema_to_mermaid.diagram.MermaidGenerator
 import java.nio.file.Path
 
 /**
