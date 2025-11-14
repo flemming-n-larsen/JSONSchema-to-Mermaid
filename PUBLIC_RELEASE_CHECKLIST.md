@@ -4,19 +4,12 @@ This file lists remaining tasks identified during the review that have NOT yet b
 
 ## ✅ Completed Since Last Review
 
-2. Enum Rendering Implemented
-   - Added enum rendering modes: inline (`{A|B|C}`), note, and separate `<<enumeration>>` class.
-   - CLI flag `--enum-style` introduced (values: `inline`, `note`, `class`).
-   - Generator supports enums in top-level schemas, nested objects, arrays (item enums), and definitions.
-   - Tests: `MermaidGeneratorReadmeExamplesTest` covers all three styles; `AppEnumStyleCliTest` validates CLI output. ProductCatalog example updated to show inline enum in definitions.
-   - README updated with an "Enum Rendering Styles" section and updated ProductCatalog Mermaid output.
+3. Remove / Justify Unused Dependency `net.pwall.json:json-kotlin-schema`
+    - Problem: Present in `build.gradle.kts` but not referenced in code.
+    - Action: Remove or start using explicitly (e.g., schema validation). Prefer removal for minimal surface.
+    - Acceptance: Build passes after removal; dependency no longer in `build.gradle.kts`.
 
 ## 🔴 Priority: Must Fix Before Public Release
-
-3. Remove / Justify Unused Dependency `net.pwall.json:json-kotlin-schema`
-   - Problem: Present in `build.gradle.kts` but not referenced in code.
-   - Action: Remove or start using explicitly (e.g., schema validation). Prefer removal for minimal surface.
-   - Acceptance: Build passes after removal; dependency no longer in `build.gradle.kts`.
 
 4. Required Feature Documentation & Limitations Section
    - Problem: README lists capabilities that are partially or not implemented (patternProperties, enums, deeper composition semantics).

@@ -18,9 +18,6 @@ dependencies {
     // Command-line (CLI) support
     implementation("com.github.ajalt.clikt", "clikt", "5.0.3")
 
-    // JSONSchema
-    implementation("net.pwall.json", "json-kotlin-schema", "0.57")
-
     // Gson for JSON parsing
     implementation("com.google.code.gson", "gson", "2.13.2")
 
