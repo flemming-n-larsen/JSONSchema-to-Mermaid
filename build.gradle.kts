@@ -30,7 +30,7 @@ dependencies {
     testImplementation(kotlin("test"))
 
     // Kotest (Kotlin testing)
-    testImplementation("io.kotest", "kotest-runner-junit5", "6.0.3")
+    testImplementation("io.kotest:kotest-runner-junit5:5.8.1")
 }
 
 application {
