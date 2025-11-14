@@ -59,7 +59,7 @@ object MermaidGenerator {
                 val className = sanitizeName(definitionName)
                 ensureClassEntry(classProperties, className)
                 definitionSchema.properties?.forEach { (propertyName, property) ->
-                    val isRequired = definitionSchema.required?.contains(propertyName) == true
+                    val isRequired = definitionSchema.required.contains(propertyName)
                     // Previously suppressed inline enum formatting inside definitions; now allow for consistency
                     mapPropertyToClass(property, propertyName, classProperties[className]!!, preferences, isRequired, className, enumNotes, enumClasses, suppressInlineEnum = false)
                     addRelationForDefinitionProperty(className, propertyName, property, relations, preferences)
@@ -114,7 +114,7 @@ object MermaidGenerator {
                     return@forEach
                 }
 
-                val isRequired = schemaFile.schema.required?.contains(propertyName) == true
+                val isRequired = schemaFile.schema.required.contains(propertyName)
 
                 if (handleCompositionKeywords(classProperties, className, propertyName, property, relations, preferences, enumNotes, enumClasses)) return@forEach
                 if (handleOneOrAnyOf(classProperties, className, propertyName, property, relations, preferences, enumNotes, enumClasses)) return@forEach
@@ -228,7 +228,7 @@ object MermaidGenerator {
             ensureClassEntry(classProperties, target)
             val itemProperties = items.properties ?: emptyMap()
             itemProperties.forEach { (innerPropertyName, innerProperty) ->
-                val subRequired = items.required?.contains(innerPropertyName) == true
+                val subRequired = items.required.contains(innerPropertyName)
                 mapPropertyToClass(innerProperty, innerPropertyName, classProperties[target]!!, preferences, subRequired, target, enumNotes, enumClasses)
             }
             relations.add(formatRelation(className, target, "1", "*", propertyName, "-->"))
@@ -252,7 +252,7 @@ object MermaidGenerator {
         ensureClassEntry(classProperties, target)
         val subProperties = property.properties ?: emptyMap()
         subProperties.forEach { (innerPropertyName, innerProperty) ->
-            val subRequired = property.required?.contains(innerPropertyName) == true
+            val subRequired = property.required.contains(innerPropertyName)
             mapPropertyToClass(innerProperty, innerPropertyName, classProperties[target]!!, preferences, subRequired, target, enumNotes, enumClasses)
         }
         val multiplicity = if (isRequired) "1" else "0..1"
@@ -282,7 +282,7 @@ object MermaidGenerator {
             if (inlines.isNotEmpty()) {
                 inlines.forEach { inline ->
                     inline.properties?.forEach { (inlinePropName, inlineProp) ->
-                        mapPropertyToClass(inlineProp, inlinePropName, classProperties[className]!!, preferences, inline.required?.contains(inlinePropName) == true, className, enumNotes, enumClasses)
+                        mapPropertyToClass(inlineProp, inlinePropName, classProperties[className]!!, preferences, inline.required.contains(inlinePropName), className, enumNotes, enumClasses)
                     }
                 }
                 handled = true
@@ -312,7 +312,7 @@ object MermaidGenerator {
                         ensureClassEntry(classProperties, target)
                         val subProperties = member.properties ?: emptyMap()
                         subProperties.forEach { (innerPropertyName, innerProperty) ->
-                            val subRequired = member.required?.contains(innerPropertyName) == true
+                            val subRequired = member.required.contains(innerPropertyName)
                             mapPropertyToClass(innerProperty, innerPropertyName, classProperties[target]!!, preferences, subRequired, target, enumNotes, enumClasses)
                         }
                         relations.add(formatRelation(className, target, "1", "1", "$propertyName ($label)", "-->"))
@@ -390,9 +390,9 @@ object MermaidGenerator {
                 mapped = primitiveTypeName(t)
             }
             return if (isRequired) {
-                "+Map<String,$mapped> $propertyName"
+                "+Map~String, $mapped~ $propertyName"
             } else {
-                "Map<String,$mapped> $propertyName [0..1]"
+                "Map~String, $mapped~ $propertyName [0..1]"
             }
         }
         if (property?.patternProperties != null) {
@@ -404,9 +404,9 @@ object MermaidGenerator {
                 mapped = primitiveTypeName(patternProp.type ?: patternProp.format)
             }
             return if (isRequired) {
-                "+Map<String,$mapped> $propertyName"
+                "+Map~String, $mapped~ $propertyName"
             } else {
-                "Map<String,$mapped> $propertyName [0..1]"
+                "Map~String, $mapped~ $propertyName [0..1]"
             }
         }
         val t = property?.type ?: property?.format
