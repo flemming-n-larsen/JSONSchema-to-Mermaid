@@ -123,6 +123,18 @@ java -jar jsonschema-to-mermaid/build/libs/jsonschema-to-mermaid.jar src/main/re
 5. Open a PR with a short description and link to the added/changed tests.
 6. Optionally, update this brief if the project scope or behavior changes significantly.
 
+## Clean Code Principles and Continuous Refactoring
+
+- All changes to the codebase must adhere to clean code principles: clarity, simplicity, readability, maintainability,
+  and minimal duplication.
+- Contributors and agents are required to review all changes for compliance with clean code standards after
+  implementation.
+- Continuous refactoring is mandatory: after making changes, review the code for opportunities to improve structure,
+  naming, and design according to clean code principles.
+- When refactoring, ensure that existing and new functionality is covered by appropriate tests. Add or update tests as
+  needed to maintain or improve test coverage and code quality.
+- Document any significant refactorings or clean code improvements in commit messages or PR descriptions.
+
 # Agent Coding Policy
 
 - You MUST always run `./gradlew clean test` as the very last thing before claiming you are done implementing a feature,
