@@ -1,4 +1,4 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.diagram
 
 import jsonschema_to_mermaid.schema_files.SchemaFileInfo
 
@@ -88,4 +88,3 @@ object MermaidGeneratorUtils {
     fun refToClassName(ref: String?): String =
         ClassNameResolver.refToClassName(ref)
 }
-

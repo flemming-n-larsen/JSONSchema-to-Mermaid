@@ -1,7 +1,12 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.schema
 
 import jsonschema_to_mermaid.schema_files.SchemaFileInfo
-import jsonschema_to_mermaid.ClassNameResolver.getClassName
+import jsonschema_to_mermaid.diagram.ClassNameResolver
+import jsonschema_to_mermaid.diagram.PropertyFormatter
+import jsonschema_to_mermaid.diagram.DiagramGenerationContext
+import jsonschema_to_mermaid.relationship.InheritanceHandler
+import jsonschema_to_mermaid.relationship.CompositionKeywordHandler
+import jsonschema_to_mermaid.relationship.PropertyRelationshipHandler
 
 /**
  * Processes top-level schema properties and their relationships.
@@ -21,7 +26,7 @@ object TopLevelSchemaProcessor {
         schemaFile: SchemaFileInfo,
         ctx: DiagramGenerationContext
     ) {
-        val className = getClassName(schemaFile)
+        val className = ClassNameResolver.getClassName(schemaFile)
         ClassRegistry.ensureClassEntry(ctx.classProperties, className)
         
         InheritanceHandler.handleInheritance(schemaFile, className, ctx.relations)
@@ -74,4 +79,3 @@ object TopLevelSchemaProcessor {
         )
     }
 }
-

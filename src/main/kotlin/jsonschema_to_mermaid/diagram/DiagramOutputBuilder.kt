@@ -1,4 +1,4 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.diagram
 
 /**
  * Builds the final Mermaid diagram output from processed classes and relationships.
@@ -74,4 +74,3 @@ object DiagramOutputBuilder {
         }
     }
 }
-

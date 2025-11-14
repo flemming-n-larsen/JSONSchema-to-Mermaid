@@ -1,8 +1,11 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.relationship
 
-import jsonschema_to_mermaid.NameSanitizer.sanitizeName
-import jsonschema_to_mermaid.ClassNameResolver.refToClassName
-import jsonschema_to_mermaid.ClassNameResolver.getClassName
+import jsonschema_to_mermaid.diagram.NameSanitizer
+import jsonschema_to_mermaid.diagram.ClassNameResolver
+import jsonschema_to_mermaid.schema.PropertyMapper
+import jsonschema_to_mermaid.schema.ClassRegistry
+import jsonschema_to_mermaid.diagram.PropertyFormatter
+import jsonschema_to_mermaid.diagram.DiagramGenerationContext
 import jsonschema_to_mermaid.jsonschema.Property
 import jsonschema_to_mermaid.schema_files.SchemaFileInfo
 
@@ -37,7 +40,7 @@ object PropertyRelationshipHandler {
         val multiplicity = if (isRequired) "1" else "0..1"
         val relation = RelationshipBuilder.formatRelation(
             className,
-            refToClassName(property.`$ref`),
+            ClassNameResolver.refToClassName(property.`$ref`),
             multiplicity,
             "1",
             propertyName,
@@ -71,7 +74,7 @@ object PropertyRelationshipHandler {
     ) {
         val relation = RelationshipBuilder.formatRelation(
             className,
-            refToClassName(items.`$ref`),
+            ClassNameResolver.refToClassName(items.`$ref`),
             "1",
             "*",
             propertyName,
@@ -99,7 +102,7 @@ object PropertyRelationshipHandler {
     private fun generateArrayItemClassName(schemaFile: SchemaFileInfo, className: String, propertyName: String): String {
         val base = if (propertyName.endsWith("s")) propertyName.dropLast(1) else propertyName
         val parent = className.trim().ifEmpty { ClassNameResolver.getClassName(schemaFile) }
-        return parent + sanitizeName(base).replaceFirstChar { it.uppercaseChar() }
+        return parent + NameSanitizer.sanitizeName(base).replaceFirstChar { it.uppercaseChar() }
     }
 
     private fun processInlineObjectProperties(items: Property, targetClassName: String, ctx: DiagramGenerationContext) {
@@ -127,7 +130,7 @@ object PropertyRelationshipHandler {
         isRequired: Boolean,
         ctx: DiagramGenerationContext
     ) {
-        val target = sanitizeName(propertyName)
+        val target = NameSanitizer.sanitizeName(propertyName)
         ClassRegistry.ensureClassEntry(ctx.classProperties, target)
 
         processObjectProperties(property, target, ctx)
@@ -145,4 +148,3 @@ object PropertyRelationshipHandler {
         }
     }
 }
-

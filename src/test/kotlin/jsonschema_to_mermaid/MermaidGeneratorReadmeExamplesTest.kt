@@ -5,6 +5,9 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.shouldBe
 import jsonschema_to_mermaid.schema_files.SchemaFilesReader
+import jsonschema_to_mermaid.diagram.MermaidGenerator
+import jsonschema_to_mermaid.diagram.Preferences
+import jsonschema_to_mermaid.diagram.EnumStyle
 import test_util.resourcePath
 
 @Suppress("unused")

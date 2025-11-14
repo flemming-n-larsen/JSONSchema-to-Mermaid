@@ -1,4 +1,4 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.relationship
 
 /**
  * Responsible for building Mermaid relation strings.
@@ -22,4 +22,3 @@ object RelationshipBuilder {
         return "$parentClassName <|-- $childClassName"
     }
 }
-

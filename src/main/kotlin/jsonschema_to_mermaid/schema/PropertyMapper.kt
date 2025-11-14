@@ -1,6 +1,11 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.schema
 
-import jsonschema_to_mermaid.NameSanitizer.sanitizeName
+import jsonschema_to_mermaid.diagram.PropertyFormatter
+import jsonschema_to_mermaid.diagram.ClassNameResolver
+import jsonschema_to_mermaid.diagram.Preferences
+import jsonschema_to_mermaid.diagram.EnumStyle
+import jsonschema_to_mermaid.diagram.DiagramGenerationContext
+import jsonschema_to_mermaid.diagram.NameSanitizer.sanitizeName
 import jsonschema_to_mermaid.jsonschema.Property
 
 /**
@@ -147,4 +152,3 @@ object PropertyMapper {
         targetProperties.add(PropertyFormatter.formatField(propertyName, property, preferences, isRequired))
     }
 }
-

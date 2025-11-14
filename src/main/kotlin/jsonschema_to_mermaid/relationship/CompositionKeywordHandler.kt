@@ -1,7 +1,12 @@
-package jsonschema_to_mermaid
+package jsonschema_to_mermaid.relationship
 
-import jsonschema_to_mermaid.NameSanitizer.sanitizeName
-import jsonschema_to_mermaid.ClassNameResolver.refToClassName
+import jsonschema_to_mermaid.diagram.NameSanitizer
+import jsonschema_to_mermaid.diagram.ClassNameResolver
+import jsonschema_to_mermaid.schema.PropertyMapper
+import jsonschema_to_mermaid.diagram.PropertyFormatter
+import jsonschema_to_mermaid.diagram.DiagramGenerationContext
+import jsonschema_to_mermaid.schema.ClassRegistry
+import jsonschema_to_mermaid.relationship.RelationshipBuilder
 import jsonschema_to_mermaid.jsonschema.Property
 
 /**
@@ -60,7 +65,7 @@ object CompositionKeywordHandler {
         refs.forEach { ref ->
             val relation = RelationshipBuilder.formatRelation(
                 className,
-                refToClassName(ref.`$ref`),
+                ClassNameResolver.refToClassName(ref.`$ref`),
                 "1",
                 "1",
                 propertyName,
@@ -138,7 +143,7 @@ object CompositionKeywordHandler {
     ) {
         val relation = RelationshipBuilder.formatRelation(
             className,
-            refToClassName(member.`$ref`),
+            ClassNameResolver.refToClassName(member.`$ref`),
             "1",
             "1",
             "$propertyName ($label)",
@@ -154,7 +159,7 @@ object CompositionKeywordHandler {
         label: String,
         ctx: DiagramGenerationContext
     ) {
-        val target = sanitizeName(propertyName) + "-option"
+        val target = NameSanitizer.sanitizeName(propertyName) + "-option"
         ClassRegistry.ensureClassEntry(ctx.classProperties, target)
 
         val subProperties = member.properties ?: emptyMap()
@@ -174,4 +179,3 @@ object CompositionKeywordHandler {
         ctx.relations.add(relation)
     }
 }
-
