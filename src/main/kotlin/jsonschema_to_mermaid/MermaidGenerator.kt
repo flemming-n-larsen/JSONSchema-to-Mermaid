@@ -34,14 +34,28 @@ object MermaidGenerator {
      */
     fun generate(schemaFiles: Collection<SchemaFileInfo>, noClassDiagramHeader: Boolean = false, preferences: Preferences = Preferences()): String {
         loadedSchemas = schemaFiles.toList()
-        val classProperties = linkedMapOf<String, MutableList<String>>()
-        val relations = mutableListOf<String>()
-        val enumNotes = mutableListOf<Pair<String, String>>() // className to note
-        val enumClasses = mutableListOf<Pair<String, List<String>>>() // enumName to values
+        val (classProperties, relations, enumNotes, enumClasses) = initializeCollections()
         processDefinitions(schemaFiles, classProperties, relations, preferences, enumNotes, enumClasses)
         processTopLevelSchemas(schemaFiles, classProperties, relations, preferences, enumNotes, enumClasses)
         return buildOutput(classProperties, relations, noClassDiagramHeader, preferences, enumNotes, enumClasses)
     }
+
+    /**
+     * Initialize collections used for diagram generation.
+     */
+    private fun initializeCollections(): Quad<LinkedHashMap<String, MutableList<String>>, MutableList<String>, MutableList<Pair<String, String>>, MutableList<Pair<String, List<String>>>> {
+        return Quad(
+            linkedMapOf<String, MutableList<String>>(),
+            mutableListOf(),
+            mutableListOf(),
+            mutableListOf()
+        )
+    }
+
+    /**
+     * Simple tuple for returning four collections.
+     */
+    private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
     /**
      * Process schema definitions and populate class properties and relations.
