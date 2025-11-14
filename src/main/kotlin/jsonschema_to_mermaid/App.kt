@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.path
 import com.github.ajalt.clikt.parameters.options.flag
+import jsonschema_to_mermaid.schema_files.SchemaFileInfo
 import jsonschema_to_mermaid.schema_files.SchemaFilesReader
 import java.nio.file.Path
 import java.util.Properties
@@ -26,13 +27,31 @@ private fun loadAppNameFromProperties(): String {
 }
 
 class App : CliktCommand(name = loadAppNameFromProperties()) {
-    private val sourceFileOption: String? by option("-s", "--source", help = "Name of the input JSON Schema file (relative to --source-dir or CWD)")
-    private val sourceDirOption: Path? by option("-d", "--source-dir", help = "Path to the directory containing input JSON Schema files (default: current directory)").path(mustExist = true)
-    private val sourcePath: Path? by argument("source", help = "Path to the input JSON Schema file or directory (positional, optional; use for convenience or backward compatibility)").path(mustExist = true).optional()
+    private val sourceFileOption: String? by option(
+        "-s",
+        "--source",
+        help = "Name of the input JSON Schema file (relative to --source-dir or CWD)"
+    )
+    private val sourceDirOption: Path? by option(
+        "-d",
+        "--source-dir",
+        help = "Path to the directory containing input JSON Schema files (default: current directory)"
+    ).path(mustExist = true)
+    private val sourcePath: Path? by argument(
+        "source",
+        help = "Path to the input JSON Schema file or directory (positional, optional; use for convenience or backward compatibility)"
+    ).path(mustExist = true).optional()
     private val outputPathArg: Path? by argument("output", help = "Optional output file path").path().optional()
     private val outputPath: Path? by option("-o", "--output", help = "Write output to FILE instead of stdout").path()
-    private val noClassDiagramHeader: Boolean by option("--no-classdiagram-header", help = "Suppress the 'classDiagram' header in Mermaid output").flag(default = false)
-    private val enumStyleOption: String? by option("--enum-style", help = "Enum rendering style: inline, note, or class (default: inline)")
+    private val noClassDiagramHeader: Boolean by option(
+        "--no-classdiagram-header",
+        help = "Suppress the 'classDiagram' header in Mermaid output"
+    ).flag(default = false)
+    private val enumStyleOption: String? by option(
+        "--enum-style",
+        help = "Enum rendering style: inline, note, or class (default: inline)"
+    )
+
     init {
         versionOption(loadVersionFromProperties())
     }
@@ -92,7 +111,7 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
             "class" -> EnumStyle.CLASS
             else -> EnumStyle.INLINE
         }
-        val preferences = jsonschema_to_mermaid.Preferences(enumStyle = enumStyle)
+        val preferences = Preferences(enumStyle = enumStyle)
         val output = generateMermaidOrExit(schemas, preferences)
         writeOutputIfNeeded(actualOutputPath, output)
         if (actualOutputPath == null) print(output)
@@ -115,12 +134,19 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
     private fun printDiagnostics(sources: Set<Path>) {
         echo("Resolved source paths:", err = true)
         sources.forEach { p ->
-            val abs = try { p.toAbsolutePath().toString() } catch (_: Exception) { "<invalid>" }
-            echo(" - '$p' -> abs='$abs', exists=${p.toFile().exists()}, isDirectory=${p.toFile().isDirectory}", err = true)
+            val abs = try {
+                p.toAbsolutePath().toString()
+            } catch (_: Exception) {
+                "<invalid>"
+            }
+            echo(
+                " - '$p' -> abs='$abs', exists=${p.toFile().exists()}, isDirectory=${p.toFile().isDirectory}",
+                err = true
+            )
         }
     }
 
-    private fun readSchemasOrExit(sources: Set<Path>): List<jsonschema_to_mermaid.schema_files.SchemaFileInfo> {
+    private fun readSchemasOrExit(sources: Set<Path>): List<SchemaFileInfo> {
         return try {
             SchemaFilesReader.readSchemas(sources)
         } catch (e: Exception) {
@@ -129,13 +155,12 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
         }
     }
 
-    private fun printSchemaDiagnostics(schemas: List<jsonschema_to_mermaid.schema_files.SchemaFileInfo>) {
+    private fun printSchemaDiagnostics(schemas: List<SchemaFileInfo>) {
         echo("Read ${schemas.size} schema(s): ${schemas.joinToString(",") { it.filename ?: "<unknown>" }}", err = true)
     }
 
     private fun generateMermaidOrExit(
-        schemas: List<jsonschema_to_mermaid.schema_files.SchemaFileInfo>,
-        preferences: jsonschema_to_mermaid.Preferences
+        schemas: List<SchemaFileInfo>, preferences: Preferences
     ): String {
         return try {
             MermaidGenerator.generate(schemas, noClassDiagramHeader = noClassDiagramHeader, preferences = preferences)
