@@ -4,17 +4,12 @@ This file lists remaining tasks identified during the review that have NOT yet b
 
 ## ✅ Completed Since Last Review
 
-3. Remove / Justify Unused Dependency `net.pwall.json:json-kotlin-schema`
-    - Problem: Present in `build.gradle.kts` but not referenced in code.
-    - Action: Remove or start using explicitly (e.g., schema validation). Prefer removal for minimal surface.
-    - Acceptance: Build passes after removal; dependency no longer in `build.gradle.kts`.
+4. Required Feature Documentation & Limitations Section
+    - Problem: README lists capabilities that are partially or not implemented (patternProperties, enums, deeper composition semantics).
+    - Action: Add a "Limitations" section enumerating unsupported JSON Schema keywords (e.g., `not`, `if/then/else`, `dependentSchemas`, external URL `$ref`).
+    - Acceptance: README updated; confusion risk reduced.
 
 ## 🔴 Priority: Must Fix Before Public Release
-
-4. Required Feature Documentation & Limitations Section
-   - Problem: README lists capabilities that are partially or not implemented (patternProperties, enums, deeper composition semantics).
-   - Action: Add a "Limitations" section enumerating unsupported JSON Schema keywords (e.g., `not`, `if/then/else`, `dependentSchemas`, external URL `$ref`).
-   - Acceptance: README updated; confusion risk reduced.
 
 5. Name Collision Handling
    - Problem: Different schemas can sanitize to same class name (e.g., `product.schema.json` vs nested definition `product`).
