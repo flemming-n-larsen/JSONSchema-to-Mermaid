@@ -127,6 +127,9 @@ java -jar jsonschema-to-mermaid/build/libs/jsonschema-to-mermaid.jar src/main/re
 
 - All changes to the codebase must adhere to clean code principles: clarity, simplicity, readability, maintainability,
   and minimal duplication.
+- Large methods and classes should be broken down into smaller, focused units. Avoid long methods and high cyclomatic
+  complexity; prefer short, single-responsibility functions and classes.
+- When a method or class requires many parameters, group them into a configuration or options data class.
 - Contributors and agents are required to review all changes for compliance with clean code standards after
   implementation.
 - Continuous refactoring is mandatory: after making changes, review the code for opportunities to improve structure,
