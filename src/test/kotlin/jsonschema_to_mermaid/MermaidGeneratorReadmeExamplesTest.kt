@@ -174,4 +174,17 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         mermaid shouldContain "<<enumeration>> StatusEnum"
         mermaid shouldContain "StatusEnum status"
     }
+
+    test("Name collision: two schemas with same title produce distinct class names") {
+        val schemas = SchemaFilesReader.readSchemas(setOf(
+            resourcePath("/readme_examples/collision-a.schema.json"),
+            resourcePath("/readme_examples/collision-b.schema.json")
+        ))
+        val mermaid = MermaidGenerator.generate(schemas)
+        // Should contain both Product and Product_2
+        mermaid shouldContain "class Product "
+        mermaid shouldContain "class Product_2 "
+        // Should not contain a third variant
+        mermaid shouldNotContain "class Product_3 "
+    }
 })

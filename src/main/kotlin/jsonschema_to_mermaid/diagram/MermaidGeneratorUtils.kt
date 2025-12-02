@@ -42,23 +42,43 @@ object NameSanitizer {
  * Resolves class names from schema files and references.
  */
 object ClassNameResolver {
+    private val nameRegistry = mutableMapOf<String, MutableList<String>>()
+
+    fun resetRegistry() {
+        nameRegistry.clear()
+    }
+
     fun getClassName(schemaFile: SchemaFileInfo): String {
-        val fromTitle = schemaFile.schema.title?.let { NameSanitizer.sanitizeName(it) }
-        if (fromTitle != null) return fromTitle
-
-        val fromFilename = schemaFile.filename
-            ?.substringBefore('.')
-            ?.let { NameSanitizer.sanitizeName(it) }
-        if (fromFilename != null) return fromFilename
-
-        return "UnknownSchema"
+        val baseName = schemaFile.schema.title?.let { NameSanitizer.sanitizeName(it) }
+            ?: schemaFile.filename?.substringBefore('.')?.let { NameSanitizer.sanitizeName(it) }
+            ?: "UnknownSchema"
+        val sourceId = schemaFile.filename ?: baseName
+        return registerAndDisambiguate(baseName, sourceId)
     }
 
     fun refToClassName(ref: String?): String {
         if (ref == null) return "UnknownRef"
-
         val lastPart = extractLastRefPart(ref)
-        return NameSanitizer.sanitizeName(lastPart)
+        val baseName = NameSanitizer.sanitizeName(lastPart)
+        return registerAndDisambiguate(baseName, ref)
+    }
+
+    private fun registerAndDisambiguate(baseName: String, sourceId: String): String {
+        val sources = nameRegistry.getOrPut(baseName) { mutableListOf() }
+        if (sources.contains(sourceId)) {
+            // Already registered for this source
+            return baseName
+        }
+        if (sources.isNotEmpty()) {
+            // Collision detected
+            val disambiguated = "${baseName}_${sources.size + 1}"
+            System.err.println("[WARN] Name collision: '$baseName' used by ${sources.joinToString()} and '$sourceId'. Disambiguated to '$disambiguated'.")
+            sources.add(sourceId)
+            nameRegistry[disambiguated] = mutableListOf(sourceId)
+            return disambiguated
+        }
+        sources.add(sourceId)
+        return baseName
     }
 
     private fun extractLastRefPart(ref: String): String {

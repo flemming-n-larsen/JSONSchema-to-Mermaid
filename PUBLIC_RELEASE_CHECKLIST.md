@@ -4,17 +4,10 @@ This file lists remaining tasks identified during the review that have NOT yet b
 
 ## ✅ Completed Since Last Review
 
-4. Required Feature Documentation & Limitations Section
-    - Problem: README lists capabilities that are partially or not implemented (patternProperties, enums, deeper composition semantics).
-    - Action: Add a "Limitations" section enumerating unsupported JSON Schema keywords (e.g., `not`, `if/then/else`, `dependentSchemas`, external URL `$ref`).
-    - Acceptance: README updated; confusion risk reduced.
-
-## 🔴 Priority: Must Fix Before Public Release
-
 5. Name Collision Handling
-   - Problem: Different schemas can sanitize to same class name (e.g., `product.schema.json` vs nested definition `product`).
-   - Action: Introduce disambiguation (namespace prefix, numeric suffix, or path-based hashing) and a warning when collisions occur.
-   - Acceptance: Test: two colliding inputs produce distinct class names.
+    - Problem: Different schemas can sanitize to same class name (e.g., `product.schema.json` vs nested definition `product`).
+    - Action: Introduce disambiguation (namespace prefix, numeric suffix, or path-based hashing) and a warning when collisions occur.
+    - Acceptance: Test: two colliding inputs produce distinct class names.
 
 ## 🟠 Priority: Should Fix Soon (Post-0.1.0 if Needed)
 

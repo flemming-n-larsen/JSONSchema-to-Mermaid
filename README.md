@@ -401,6 +401,8 @@ classDiagram
 
 ### Tips for reading these examples
 
+- If two schemas or definitions would produce the same class name, the generator will append a numeric suffix (e.g.,
+  `Product`, `Product_2`) and emit a warning to stderr. This ensures all classes are uniquely named in the diagram.
 - `+` indicates a required field.
 - `[0..1]` indicates an optional field (may be absent).
 - Arrays may be shown as X[] or as relationships with multiplicity "*".
@@ -459,8 +461,9 @@ You can control how enum values appear using the `--enum-style` flag:
       classes.
 - **External `$ref`**: Only local file and same-directory references are supported. References to external files (other
   directories or HTTP URLs) are not resolved.
-- **Name Collisions**: If two schemas sanitize to the same class name, the tool may produce duplicate or conflicting
-  class names. Disambiguation is not yet implemented (see checklist).
+- **Name Collisions**: If two schemas sanitize to the same class name, the tool will automatically disambiguate by
+  appending a numeric suffix (e.g., `Product`, `Product_2`, `Product_3`). A warning is emitted to stderr when this
+  occurs. This ensures diagrams are valid and unambiguous.
 - **Array Item Naming**: Plural-to-singular conversion is naive (drops trailing `s`). Irregular plurals are not handled.
 - **Inheritance**: Only single inheritance is supported. Multiple inheritance via `allOf` is not merged if more than one
   object segment is present.
