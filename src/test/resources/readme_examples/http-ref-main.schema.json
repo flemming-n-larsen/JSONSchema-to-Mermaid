@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HttpRefMain",
+  "type": "object",
+  "properties": {
+    "name": {
+      "$ref": "https://json.schemastore.org/package.json"
+    }
+  }
+}
+

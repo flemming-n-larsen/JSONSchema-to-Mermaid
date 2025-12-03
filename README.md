@@ -453,6 +453,49 @@ You can control how enum values appear using the `--enum-style` flag:
    ```
    CLI: `jsonschema-to-mermaid schema.json --enum-style class`
 
+## External $ref Support
+
+JSONSchema-to-Mermaid supports resolving external `$ref` references to both local files and HTTP(S) URLs. This means you
+can reference schemas in other files (relative or absolute paths) and remote schemas hosted online.
+
+- **File-based $ref**: Use relative or absolute paths in `$ref` (e.g., `"$ref": "other-schema.json"`). The referenced
+  file will be loaded and parsed.
+- **HTTP(S) $ref**: Use a full URL in `$ref` (e.g., `"$ref": "https://json.schemastore.org/package.json"`). The remote
+  schema will be fetched and parsed (with caching and timeout).
+
+**Usage Caveats:**
+
+- Remote HTTP schemas are fetched with a short timeout and cached for the duration of the run.
+- If a referenced file or URL cannot be loaded, an error will be shown in the diagram output.
+- Only JSON and YAML schemas are supported for external references.
+- For security and reliability, prefer local file references for production use.
+
+### Example: External File $ref
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "externalProperty": {
+      "$ref": "external-ref-target.schema.json"
+    }
+  }
+}
+```
+
+### Example: HTTP $ref
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "$ref": "https://json.schemastore.org/package.json"
+    }
+  }
+}
+```
+
 ## Limitations
 
 - **patternProperties**: Only the first pattern is used for type inference in the generated Mermaid diagram. If multiple
@@ -463,8 +506,8 @@ You can control how enum values appear using the `--enum-style` flag:
     - `allOf` is treated as inheritance if all segments are objects; otherwise, only the first object segment is merged.
     - `anyOf`/`oneOf` are visualized as multiple possible relations, but do not generate union types or polymorphic
       classes.
-- **External `$ref`**: Only local file and same-directory references are supported. References to external files (other
-  directories or HTTP URLs) are not resolved.
+- **External `$ref`**: File and HTTP(S) references are supported. If a reference cannot be loaded, an error is shown in
+  the diagram output.
 - **Name Collisions**: If two schemas sanitize to the same class name, the tool will automatically disambiguate by
   appending a numeric suffix (e.g., `Product`, `Product_2`, `Product_3`). A warning is emitted to stderr when this
   occurs. This ensures diagrams are valid and unambiguous.

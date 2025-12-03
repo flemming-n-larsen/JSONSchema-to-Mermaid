@@ -6,7 +6,10 @@ Provide a compact, human-friendly explanation of this repository's goal so an au
 
 ## Project Goal
 
-Convert JSON Schema (and YAML Schema variants) into Mermaid diagrams (class diagrams, entity relationship-like diagrams) to help visualize schema structure, relationships, and types. Support both single-file and multi-file schemas, resolve $ref references (local and file-based), and produce readable Mermaid output usable in documentation and README previews.
+Convert JSON Schema (and YAML Schema variants) into Mermaid diagrams (class diagrams, entity relationship-like diagrams)
+to help visualize schema structure, relationships, and types. Support both single-file and multi-file schemas, resolve $
+ref references (local, file-based, and HTTP/remote), and produce readable Mermaid output usable in documentation and
+README previews.
 
 ## Primary Inputs and Outputs
 
@@ -102,6 +105,8 @@ By default, treat unresolved remote refs as an error and fail fast with an infor
 - JSON Schema features not mapped to Mermaid (oneOf/anyOf/allOf semantics)
 - Large schemas with many files and cross-file refs (performance & resolution order)
 - Mixed YAML/JSON formats, non-standard extensions, or remote HTTP refs
+- External $ref: Ensure file and HTTP(S) references are resolved and tested, including error handling for unreachable
+  refs
 
 ## Contributor First-Steps Checklist
 
@@ -116,7 +121,8 @@ By default, treat unresolved remote refs as an error and fail fast with an infor
    # then inspect /tmp/bookstore.mmd for expected content like "class Book"
    ```
 
-3. Add unit tests under `src/test/kotlin` for any new parsing/resolution behavior (follow existing test patterns).
+3. Add unit tests under `src/test/kotlin` for any new parsing/resolution behavior (including external $ref: file and
+   HTTP). Follow existing test patterns.
 4. If changing rendering, include snapshot-style assertions of Mermaid output to catch regressions.
 5. Open a PR with a description and link to the added/changed tests.
 6. Update this brief if the project scope or behavior changes significantly.
@@ -147,3 +153,7 @@ By default, treat unresolved remote refs as an error and fail fast with an infor
 - If a method requires more than 6 parameters, group related parameters into a context or data class.
 - This improves readability, maintainability, and reduces the risk of errors.
 
+## Testing
+
+- All changes must be covered by tests, including external $ref resolution (file and HTTP).
+- Always run `./gradlew clean test` before claiming a feature is complete

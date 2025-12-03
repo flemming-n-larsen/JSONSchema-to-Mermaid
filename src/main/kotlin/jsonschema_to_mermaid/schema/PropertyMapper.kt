@@ -7,6 +7,8 @@ import jsonschema_to_mermaid.diagram.EnumStyle
 import jsonschema_to_mermaid.diagram.DiagramGenerationContext
 import jsonschema_to_mermaid.diagram.NameSanitizer
 import jsonschema_to_mermaid.jsonschema.Property
+import jsonschema_to_mermaid.schema_files.RefResolver
+import java.nio.file.Paths
 
 /**
  * Responsible for mapping properties to class definitions in the diagram.
@@ -97,7 +99,7 @@ object PropertyMapper {
         val targetProperties = ctx.classProperties[currentClassName]!!
 
         when {
-            property.`$ref` != null -> handleReferenceProperty(targetProperties, propertyName, property, isRequired)
+            property.`$ref` != null -> handleReferenceProperty(targetProperties, propertyName, property, isRequired, ctx)
             property.type == "array" -> handleArrayProperty(targetProperties, propertyName, property, isRequired, ctx.preferences)
             property.type == "object" -> handleObjectProperty(targetProperties, propertyName, isRequired)
             else -> handlePrimitiveProperty(targetProperties, propertyName, property, isRequired, ctx.preferences)
@@ -108,15 +110,32 @@ object PropertyMapper {
         targetProperties: MutableList<String>,
         propertyName: String,
         property: Property,
-        isRequired: Boolean
+        isRequired: Boolean,
+        ctx: DiagramGenerationContext
     ) {
-        targetProperties.add(
-            PropertyFormatter.formatInlineField(
-                propertyName, 
-                ClassNameResolver.refToClassName(property.`$ref`), 
-                isRequired
+        val ref = property.`$ref`
+        if (ref != null && (ref.startsWith("http://") || ref.startsWith("https://") || ref.endsWith(".json") || ref.endsWith(".yaml") || ref.endsWith(".yml"))) {
+            try {
+                // Use current working directory as base for relative file refs
+                val baseDir = Paths.get("").toAbsolutePath()
+                val resolvedMap = RefResolver.resolve(ref, baseDir)
+                // Convert resolved map to Property (via Gson)
+                val gson = com.google.gson.GsonBuilder().create()
+                val resolvedProperty = gson.fromJson(gson.toJson(resolvedMap), Property::class.java)
+                // Recursively process the resolved property
+                handleRegularProperty(resolvedProperty, propertyName, ClassNameResolver.refToClassName(ref), isRequired, ctx)
+            } catch (e: Exception) {
+                targetProperties.add("// Error resolving external $ref: $ref - ${e.message}")
+            }
+        } else {
+            targetProperties.add(
+                PropertyFormatter.formatInlineField(
+                    propertyName,
+                    ClassNameResolver.refToClassName(property.`$ref`),
+                    isRequired
+                )
             )
-        )
+        }
     }
 
     private fun handleArrayProperty(

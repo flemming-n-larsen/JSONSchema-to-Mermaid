@@ -3,6 +3,7 @@ package jsonschema_to_mermaid.schema_files
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import jsonschema_to_mermaid.exception.FileFormatException
 import jsonschema_to_mermaid.exception.InheritanceCycleException
 import test_util.resourcePath
@@ -60,5 +61,25 @@ class SchemaFileReaderTest : FunSpec({
                 )
             )
         }
+    }
+
+    test("readSchemas resolves external $ref from file") {
+        val schemas = SchemaFilesReader.readSchemas(
+            setOf(resourcePath("/readme_examples/external-ref-main.schema.json"))
+        )
+        schemas.shouldHaveSize(1)
+        val main = schemas.first().schema
+        // The external property should be present and resolved
+        main.properties?.containsKey("externalProperty") shouldBe true
+    }
+
+    test("readSchemas resolves external $ref from HTTP URL") {
+        val schemas = SchemaFilesReader.readSchemas(
+            setOf(resourcePath("/readme_examples/http-ref-main.schema.json"))
+        )
+        schemas.shouldHaveSize(1)
+        val main = schemas.first().schema
+        // The property from the HTTP schema should be present
+        main.properties?.containsKey("name") shouldBe true // 'name' is a property in package.json schema
     }
 })
