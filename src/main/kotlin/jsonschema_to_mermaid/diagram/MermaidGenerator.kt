@@ -1,8 +1,6 @@
 package jsonschema_to_mermaid.diagram
 
 import jsonschema_to_mermaid.schema_files.SchemaFileInfo
-import jsonschema_to_mermaid.diagram.MermaidDiagramBuilder
-import jsonschema_to_mermaid.diagram.Preferences
 
 /**
  * Generates Mermaid class diagrams from JSON Schema files.

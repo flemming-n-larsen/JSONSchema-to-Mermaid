@@ -14,17 +14,17 @@ This file lists remaining tasks identified during the review that have NOT yet b
     - Action: Integrate a lightweight inflection library or custom rules (handle `companies` → `Company`).
     - Acceptance: Tests for plural edge cases.
 
+12. Refactor Vestigial Classes (`MermaidClassDiagramGenerator`, model classes)
+    - Problem: Unused alternative generation path increases maintenance footprint.
+    - Action: Remove or unify into a single internal representation with adapter to string output.
+    - Acceptance: Codebase free of unused generator OR documented API usage.
+
 ## 🟠 Priority: Should Fix Soon (Post-0.1.0 if Needed)
 
 11. Inheritance Visualization Preference
     - Problem: Behavior fixed to hide inherited fields; some users may want them.
     - Action: Add flag `--show-inherited-fields`.
     - Acceptance: Tests verify toggled display.
-
-12. Refactor Vestigial Classes (`MermaidClassDiagramGenerator`, model classes)
-    - Problem: Unused alternative generation path increases maintenance footprint.
-    - Action: Remove or unify into a single internal representation with adapter to string output.
-    - Acceptance: Codebase free of unused generator OR documented API usage.
 
 13. Cycle Detection Test Coverage Enhancement
     - Problem: Only simple 2-node cycle tested.
