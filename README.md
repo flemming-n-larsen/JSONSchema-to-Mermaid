@@ -5,6 +5,10 @@
 [Mermaid](https://mermaid-js.github.io/) class diagrams.
 This helps you visualize data models, document APIs, and understand complex schema structures quickly and easily.
 
+## CI Status
+
+![CI](https://github.com/larsenf/JSONSchema-to-Mermaid/actions/workflows/ci.yml/badge.svg)
+
 ## Usage
 
 You can run the generator from the command line. It reads one or more JSON Schema files and outputs a Mermaid class

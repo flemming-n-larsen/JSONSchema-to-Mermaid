@@ -9,12 +9,12 @@ This file lists remaining tasks identified during the review that have NOT yet b
    - Action: Golden Mermaid output files for README examples are now generated and compared in tests. Full output is checked, not just substrings. To update goldens, run `UPDATE_GOLDEN=1 ./gradlew test --tests '*MermaidGeneratorReadmeExamplesTest'`.
    - Acceptance: Test suite includes snapshot tests; update workflow for intentional changes.
 
-## 🟠 Priority: Should Fix Soon (Post-0.1.0 if Needed)
-
 8. Continuous Integration (GitHub Actions)
-   - Problem: No automated build/test on pushes or PRs.
-   - Action: Add workflow: setup JDK + Gradle cache, run `./gradlew build`, optionally publish artifacts on tag.
-   - Acceptance: Badge added to README; workflow green.
+    - Problem: No automated build/test on pushes or PRs.
+    - Action: Add workflow: setup JDK + Gradle cache, run `./gradlew build`, optionally publish artifacts on tag.
+    - Acceptance: Badge added to README; workflow green.
+
+## 🟠 Priority: Should Fix Soon (Post-0.1.0 if Needed)
 
 9. External `$ref` Support (File and HTTP URLs)
    - Problem: Only local same-directory refs supported.
