@@ -49,6 +49,10 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
         "--enum-style",
         help = "Enum rendering style: inline, note, or class (default: inline)"
     )
+    private val useEnglishSingularizer: Boolean by option(
+        "--english-singularizer",
+        help = "Use English singularization for array item names (default: true). Disable for non-English diagrams."
+    ).flag(default = true)
 
     init {
         versionOption(loadVersionFromProperties())
@@ -73,7 +77,8 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
             outputPathArg = outputPathArg,
             outputPath = outputPath,
             noClassDiagramHeader = noClassDiagramHeader,
-            enumStyleOption = enumStyleOption
+            enumStyleOption = enumStyleOption,
+            useEnglishSingularizer = useEnglishSingularizer
         )
         val cliService = CliService(
             options

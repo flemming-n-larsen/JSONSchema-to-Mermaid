@@ -120,7 +120,9 @@ object PropertyRelationshipHandler {
         isRequired: Boolean,
         ctx: DiagramGenerationContext
     ) {
-        ctx.classProperties[className]!!.add(PropertyFormatter.formatArrayField(propertyName, items, isRequired))
+        ctx.classProperties[className]!!.add(
+            PropertyFormatter.formatArrayField(propertyName, items, isRequired, ctx.preferences)
+        )
     }
 
     fun handleObjectRelation(

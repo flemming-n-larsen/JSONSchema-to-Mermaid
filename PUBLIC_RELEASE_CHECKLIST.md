@@ -9,12 +9,12 @@ This file lists remaining tasks identified during the review that have NOT yet b
     - Action: Add resolver for relative paths outside initial set and (optionally) HTTP with caching & timeout.
     - Acceptance: Test referencing another directory (and optionally remote) passes.
 
-## 🟠 Priority: Should Fix Soon (Post-0.1.0 if Needed)
-
 10. Improved Array Item Naming
     - Problem: Singularization by dropping trailing `s` is naive.
     - Action: Integrate a lightweight inflection library or custom rules (handle `companies` → `Company`).
     - Acceptance: Tests for plural edge cases.
+
+## 🟠 Priority: Should Fix Soon (Post-0.1.0 if Needed)
 
 11. Inheritance Visualization Preference
     - Problem: Behavior fixed to hide inherited fields; some users may want them.

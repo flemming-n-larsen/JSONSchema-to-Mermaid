@@ -17,7 +17,8 @@ data class CliOptions(
     val outputPathArg: Path? = null,
     val outputPath: Path? = null,
     val noClassDiagramHeader: Boolean = false,
-    val enumStyleOption: String? = null
+    val enumStyleOption: String? = null,
+    val useEnglishSingularizer: Boolean = true
 )
 
 /**
@@ -147,6 +148,9 @@ class CliService(
             "class" -> EnumStyle.CLASS
             else -> EnumStyle.INLINE
         }
-        return Preferences(enumStyle = enumStyle)
+        return Preferences(
+            enumStyle = enumStyle,
+            useEnglishSingularizer = options.useEnglishSingularizer
+        )
     }
 }

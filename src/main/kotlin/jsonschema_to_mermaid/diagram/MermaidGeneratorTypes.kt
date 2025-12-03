@@ -16,6 +16,7 @@ data class Preferences(
     val showRequiredWithPlus: Boolean = true,
     val arraysAsRelation: Boolean = true,
     val enumStyle: EnumStyle = EnumStyle.INLINE,
+    val useEnglishSingularizer: Boolean = true // New option for array item naming
 )
 
 /**

@@ -29,6 +29,8 @@ jsonschema-to-mermaid [OPTIONS] [<source>] [<output>]
 - `-d, --source-dir DIR`   Directory with schema files (default: current directory)
 - `-o, --output FILE`      Output file
 - `--enum-style STYLE`     Enum rendering style: `inline` (default), `note`, or `class`
+- `--english-singularizer` Use English singularization for array item names (default: true). Disable for non-English
+  diagrams.
 - `-h, --help`             Show help
 - `-V, --version`          Show version
 - `--no-classdiagram-header`  Suppress the `classDiagram` header in Mermaid output. Useful for embedding the diagram
@@ -535,3 +537,15 @@ If you add additional examples, please include:
 - the input schema file (JSON or YAML)
 - the expected Mermaid markdown output
 - a short note explaining noteworthy mapping decisions (e.g., how oneOf should be shown)
+
+### Array Item Naming and Language Support
+
+By default, array item names are automatically singularized using English rules (e.g., `companies` → `Company`).
+If your schema uses property names in another language, you can disable this behavior with:
+
+```sh
+jsonschema-to-mermaid --english-singularizer=false ...
+```
+
+This will use the property name as-is (capitalized) for array items, avoiding unwanted singularization in non-English
+diagrams.
