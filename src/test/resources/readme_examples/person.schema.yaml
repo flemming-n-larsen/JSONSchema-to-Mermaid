@@ -6,11 +6,12 @@ properties:
     type: integer
   name:
     type: string
-  tags:
-    type: array
-    items:
-      type: string
+  email:
+    type: string
+    format: email
+  isActive:
+    type: boolean
+    default: true
 required:
   - id
   - name
-

@@ -1,0 +1,15 @@
+classDiagram
+  class Money {
+    +{USD|EUR|GBP} currency
+    +Number amount
+  }
+  class Product {
+    +String id
+    +String name
+    +Money price
+  }
+  class ProductCatalog {
+  }
+
+  Product o-- Money : price
+  ProductCatalog "1" --> "*" Product : products

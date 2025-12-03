@@ -1,0 +1,21 @@
+classDiagram
+  class Address {
+    String street [0..1]
+    String city [0..1]
+  }
+  class Card {
+    String cardNumber [0..1]
+  }
+  class Paypal {
+    String accountEmail [0..1]
+  }
+  class ComplexExample {
+    String id [0..1]
+    Map~String, String~ metadata [0..1]
+    Map~String, Number~ attributes [0..1]
+    String eta [0..1]
+  }
+
+  ComplexExample "1" --> "1" Address : shipment
+  ComplexExample "1" --> "1" Card : paymentMethod (oneOf)
+  ComplexExample "1" --> "1" Paypal : paymentMethod (oneOf)

@@ -4,22 +4,12 @@ This file lists remaining tasks identified during the review that have NOT yet b
 
 ## ✅ Completed Since Last Review
 
-5. Name Collision Handling
-    - Problem: Different schemas can sanitize to same class name (e.g., `product.schema.json` vs nested definition `product`).
-    - Action: Introduce disambiguation (namespace prefix, numeric suffix, or path-based hashing) and a warning when collisions occur.
-    - Acceptance: Test: two colliding inputs produce distinct class names.
-
-## 🟠 Priority: Should Fix Soon (Post-0.1.0 if Needed)
-
-6. CLI Configuration Flags
-   - Problem: Preferences (arrays as relations, required marker style, enum rendering mode) hardcoded.
-   - Action: Add flags: `--arrays-as-relation/--arrays-inline`, `--required-style=plus|none|suffix-q`, `--enum-style=inline|note|class`.
-   - Acceptance: Help text (`--help`) lists flags; tests exercise at least one flag changing output.
-
 7. Snapshot / Golden Tests
    - Problem: Tests assert presence of substrings only; risk of unnoticed regressions.
-   - Action: Add golden Mermaid output files for README examples and compare entire string.
+   - Action: Golden Mermaid output files for README examples are now generated and compared in tests. Full output is checked, not just substrings. To update goldens, run `UPDATE_GOLDEN=1 ./gradlew test --tests '*MermaidGeneratorReadmeExamplesTest'`.
    - Acceptance: Test suite includes snapshot tests; update workflow for intentional changes.
+
+## 🟠 Priority: Should Fix Soon (Post-0.1.0 if Needed)
 
 8. Continuous Integration (GitHub Actions)
    - Problem: No automated build/test on pushes or PRs.
@@ -50,6 +40,12 @@ This file lists remaining tasks identified during the review that have NOT yet b
     - Problem: Only simple 2-node cycle tested.
     - Action: Add 3+ node cycle case, and ensure message chain ordering consistent.
     - Acceptance: Additional cycle test passes.
+
+6. CLI Configuration Flags
+    - Problem: Preferences (arrays as relations, required marker style, enum rendering mode) hardcoded.
+    - Action: Figure out which options to expose and there names.
+    - Action: Add flags: `--arrays-as-relation/--arrays-inline`, `--required-style=plus|none|suffix-q`, `--enum-style=inline|note|class`.
+    - Acceptance: Help text (`--help`) lists flags; tests exercise at least one flag changing output.
 
 ## 🟡 Priority: Nice to Have / Future Enhancements
 

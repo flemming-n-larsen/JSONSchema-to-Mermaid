@@ -1,0 +1,15 @@
+classDiagram
+  class Order {
+    +String orderId
+  }
+  class Customer {
+    +String customerId
+    String name [0..1]
+  }
+  class OrderItem {
+    +String productId
+    Integer quantity [0..1]
+  }
+
+  Order "1" --> "1" Customer : customer
+  Order "1" --> "*" OrderItem : items
