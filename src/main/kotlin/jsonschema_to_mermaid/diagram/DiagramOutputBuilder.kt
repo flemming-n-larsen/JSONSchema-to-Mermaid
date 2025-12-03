@@ -18,7 +18,7 @@ object DiagramOutputBuilder {
             appendClasses(classProperties)
             appendEnums(preferences, enumNotes, enumClasses)
             appendRelations(relations)
-        }.toString()
+        }.toString().trimEnd() + "\n"
     }
 
     private fun StringBuilder.appendHeader(noClassDiagramHeader: Boolean) {

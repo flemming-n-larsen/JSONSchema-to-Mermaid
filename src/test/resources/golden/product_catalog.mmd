@@ -1,6 +1,6 @@
 classDiagram
   class Money {
-    +{USD|EUR|GBP} currency
+    +MoneyCurrencyEnum currency
     +Number amount
   }
   class Product {
@@ -10,6 +10,12 @@ classDiagram
   }
   class ProductCatalog {
   }
+  class MoneyCurrencyEnum {
+    USD
+    EUR
+    GBP
+  }
+  <<enumeration>> MoneyCurrencyEnum
 
   Product o-- Money : price
   ProductCatalog "1" --> "*" Product : products

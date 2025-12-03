@@ -5,7 +5,7 @@ import jsonschema_to_mermaid.diagram.ClassNameResolver
 import jsonschema_to_mermaid.diagram.Preferences
 import jsonschema_to_mermaid.diagram.EnumStyle
 import jsonschema_to_mermaid.diagram.DiagramGenerationContext
-import jsonschema_to_mermaid.diagram.NameSanitizer.sanitizeName
+import jsonschema_to_mermaid.diagram.NameSanitizer
 import jsonschema_to_mermaid.jsonschema.Property
 
 /**
@@ -47,7 +47,7 @@ object PropertyMapper {
         when (ctx.preferences.enumStyle) {
             EnumStyle.INLINE -> addInlineEnum(targetProperties, propertyName, property, isRequired)
             EnumStyle.NOTE -> addEnumAsNote(targetProperties, propertyName, property, currentClassName, isRequired, ctx)
-            EnumStyle.CLASS -> addEnumAsClass(targetProperties, propertyName, property, isRequired, ctx)
+            EnumStyle.CLASS -> addEnumAsClass(targetProperties, propertyName, property, currentClassName, isRequired, ctx)
         }
     }
 
@@ -77,10 +77,12 @@ object PropertyMapper {
         targetProperties: MutableList<String>,
         propertyName: String,
         property: Property,
+        currentClassName: String,
         isRequired: Boolean,
         ctx: DiagramGenerationContext
     ) {
-        val enumClassName = "${sanitizeName(propertyName)}Enum"
+        // Always use sanitized currentClassName and propertyName for the enum class, e.g. EnumExampleStatusEnum
+        val enumClassName = NameSanitizer.sanitizeName(currentClassName) + NameSanitizer.sanitizeName(propertyName).replaceFirstChar { it.uppercase() } + "Enum"
         targetProperties.add(PropertyFormatter.formatInlineField(propertyName, enumClassName, isRequired))
         ctx.enumClasses.add(enumClassName to property.enum!!)
     }
@@ -138,7 +140,7 @@ object PropertyMapper {
         propertyName: String,
         isRequired: Boolean
     ) {
-        val target = sanitizeName(propertyName)
+        val target = NameSanitizer.sanitizeName(propertyName)
         targetProperties.add(PropertyFormatter.formatInlineField(propertyName, target, isRequired))
     }
 

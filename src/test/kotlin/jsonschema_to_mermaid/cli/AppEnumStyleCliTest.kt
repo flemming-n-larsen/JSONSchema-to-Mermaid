@@ -46,8 +46,8 @@ class AppEnumStyleCliTest : FunSpec({
     test("CLI --enum-style class renders enum as separate class") {
         val schemaPath = resourcePath("/readme_examples/enum-example.schema.json").toString()
         val output = runCli(schemaPath, "--enum-style", "class")
-        output.shouldContain("class StatusEnum")
-        output.shouldContain("StatusEnum status")
+        output.shouldContain("class EnumExampleStatusEnum")
+        output.shouldContain("EnumExampleStatusEnum status")
         output.shouldNotContain("{A|B|C} status")
         output.shouldNotContain("note for EnumExample")
     }
