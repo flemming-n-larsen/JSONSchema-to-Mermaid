@@ -8,6 +8,7 @@ import jsonschema_to_mermaid.schema_files.SchemaFilesReader
 import jsonschema_to_mermaid.diagram.MermaidGenerator
 import jsonschema_to_mermaid.diagram.Preferences
 import jsonschema_to_mermaid.diagram.EnumStyle
+import jsonschema_to_mermaid.diagram.RequiredFieldStyle
 import test_util.GoldenTestUtil
 import test_util.resourcePath
 
@@ -131,5 +132,23 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
         mermaid shouldContain "class Product_2 "
         // Should not contain a third variant
         mermaid shouldNotContain "class Product_3 "
+    }
+
+    test("Order example renders arrays inline when arraysAsRelation=false") {
+        val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/order.schema.json")))
+        val mermaid = MermaidGenerator.generate(schemas, preferences = Preferences(arraysAsRelation = false))
+        GoldenTestUtil.assertMatchesGolden("order_arrays_inline", mermaid)
+    }
+
+    test("Person example renders without markers when required-style=none") {
+        val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/person.schema.json")))
+        val mermaid = MermaidGenerator.generate(schemas, preferences = Preferences(requiredFieldStyle = RequiredFieldStyle.NONE))
+        GoldenTestUtil.assertMatchesGolden("person_required_none", mermaid)
+    }
+
+    test("Person example renders suffix-q optional markers") {
+        val schemas = SchemaFilesReader.readSchemas(setOf(resourcePath("/readme_examples/person.schema.json")))
+        val mermaid = MermaidGenerator.generate(schemas, preferences = Preferences(requiredFieldStyle = RequiredFieldStyle.SUFFIX_Q))
+        GoldenTestUtil.assertMatchesGolden("person_required_suffix_q", mermaid)
     }
 })

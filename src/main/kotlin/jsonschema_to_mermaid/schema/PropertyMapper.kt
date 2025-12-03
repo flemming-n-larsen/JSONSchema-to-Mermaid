@@ -47,7 +47,7 @@ object PropertyMapper {
         val targetProperties = ctx.classProperties[currentClassName]!!
         
         when (ctx.preferences.enumStyle) {
-            EnumStyle.INLINE -> addInlineEnum(targetProperties, propertyName, property, isRequired)
+            EnumStyle.INLINE -> addInlineEnum(targetProperties, propertyName, property, isRequired, ctx.preferences)
             EnumStyle.NOTE -> addEnumAsNote(targetProperties, propertyName, property, currentClassName, isRequired, ctx)
             EnumStyle.CLASS -> addEnumAsClass(targetProperties, propertyName, property, currentClassName, isRequired, ctx)
         }
@@ -57,9 +57,10 @@ object PropertyMapper {
         targetProperties: MutableList<String>,
         propertyName: String,
         property: Property,
-        isRequired: Boolean
+        isRequired: Boolean,
+        preferences: Preferences
     ) {
-        targetProperties.add(PropertyFormatter.formatEnumInlineField(propertyName, property, isRequired))
+        targetProperties.add(PropertyFormatter.formatEnumInlineField(propertyName, property, isRequired, preferences))
     }
 
     private fun addEnumAsNote(
@@ -85,7 +86,7 @@ object PropertyMapper {
     ) {
         // Always use sanitized currentClassName and propertyName for the enum class, e.g. EnumExampleStatusEnum
         val enumClassName = NameSanitizer.sanitizeName(currentClassName) + NameSanitizer.sanitizeName(propertyName).replaceFirstChar { it.uppercase() } + "Enum"
-        targetProperties.add(PropertyFormatter.formatInlineField(propertyName, enumClassName, isRequired))
+        targetProperties.add(PropertyFormatter.formatInlineField(propertyName, enumClassName, isRequired, ctx.preferences))
         ctx.enumClasses.add(enumClassName to property.enum!!)
     }
 
@@ -101,7 +102,7 @@ object PropertyMapper {
         when {
             property.`$ref` != null -> handleReferenceProperty(targetProperties, propertyName, property, isRequired, ctx)
             property.type == "array" -> handleArrayProperty(targetProperties, propertyName, property, isRequired, ctx.preferences)
-            property.type == "object" -> handleObjectProperty(targetProperties, propertyName, isRequired)
+            property.type == "object" -> handleObjectProperty(targetProperties, propertyName, isRequired, ctx.preferences)
             else -> handlePrimitiveProperty(targetProperties, propertyName, property, isRequired, ctx.preferences)
         }
     }
@@ -132,7 +133,8 @@ object PropertyMapper {
                 PropertyFormatter.formatInlineField(
                     propertyName,
                     ClassNameResolver.refToClassName(property.`$ref`),
-                    isRequired
+                    isRequired,
+                    ctx.preferences
                 )
             )
         }
@@ -150,17 +152,18 @@ object PropertyMapper {
                                (items?.type != "object" && items?.`$ref` == null)
         
         if (shouldAddAsField) {
-            targetProperties.add(PropertyFormatter.formatArrayField(propertyName, items, isRequired))
+            targetProperties.add(PropertyFormatter.formatArrayField(propertyName, items, isRequired, preferences))
         }
     }
 
     private fun handleObjectProperty(
         targetProperties: MutableList<String>,
         propertyName: String,
-        isRequired: Boolean
+        isRequired: Boolean,
+        preferences: Preferences
     ) {
         val target = NameSanitizer.sanitizeName(propertyName)
-        targetProperties.add(PropertyFormatter.formatInlineField(propertyName, target, isRequired))
+        targetProperties.add(PropertyFormatter.formatInlineField(propertyName, target, isRequired, preferences))
     }
 
     private fun handlePrimitiveProperty(

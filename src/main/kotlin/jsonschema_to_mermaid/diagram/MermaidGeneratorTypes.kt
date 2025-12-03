@@ -10,14 +10,23 @@ enum class EnumStyle {
 }
 
 /**
+ * Controls how required vs optional fields are annotated.
+ */
+enum class RequiredFieldStyle {
+    PLUS,     // Prefix required fields with '+'
+    NONE,     // Do not mark required vs optional
+    SUFFIX_Q  // Append '?' to optional fields
+}
+
+/**
  * Preferences for customizing Mermaid diagram generation.
  */
 data class Preferences(
-    val showRequiredWithPlus: Boolean = true,
     val arraysAsRelation: Boolean = true,
     val enumStyle: EnumStyle = EnumStyle.INLINE,
     val useEnglishSingularizer: Boolean = true, // New option for array item naming
-    val showInheritedFields: Boolean = false
+    val showInheritedFields: Boolean = false,
+    val requiredFieldStyle: RequiredFieldStyle = RequiredFieldStyle.PLUS
 )
 
 /**

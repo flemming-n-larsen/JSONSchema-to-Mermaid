@@ -5,6 +5,7 @@ import jsonschema_to_mermaid.schema_files.SchemaFilesReader
 import jsonschema_to_mermaid.diagram.Preferences
 import jsonschema_to_mermaid.diagram.EnumStyle
 import jsonschema_to_mermaid.diagram.MermaidGenerator
+import jsonschema_to_mermaid.diagram.RequiredFieldStyle
 import java.nio.file.Path
 
 /**
@@ -19,7 +20,10 @@ data class CliOptions(
     val noClassDiagramHeader: Boolean = false,
     val enumStyleOption: String? = null,
     val useEnglishSingularizer: Boolean = true,
-    val showInheritedFields: Boolean = false
+    val showInheritedFields: Boolean = false,
+    val arraysAsRelation: Boolean = true,
+    val arraysInline: Boolean = false,
+    val requiredStyleOption: String? = null
 )
 
 /**
@@ -147,12 +151,22 @@ class CliService(
         val enumStyle = when (options.enumStyleOption?.lowercase()) {
             "note" -> EnumStyle.NOTE
             "class" -> EnumStyle.CLASS
-            else -> EnumStyle.INLINE
+            null, "inline" -> EnumStyle.INLINE
+            else -> throw IllegalArgumentException("Invalid enum style: ${options.enumStyleOption}")
+        }
+        val arraysPreference = if (options.arraysInline) false else options.arraysAsRelation
+        val requiredStyle = when (options.requiredStyleOption?.lowercase()) {
+            null, "plus" -> RequiredFieldStyle.PLUS
+            "none" -> RequiredFieldStyle.NONE
+            "suffix-q" -> RequiredFieldStyle.SUFFIX_Q
+            else -> throw IllegalArgumentException("Invalid required style: ${options.requiredStyleOption}")
         }
         return Preferences(
+            arraysAsRelation = arraysPreference,
             enumStyle = enumStyle,
             useEnglishSingularizer = options.useEnglishSingularizer,
-            showInheritedFields = options.showInheritedFields
+            showInheritedFields = options.showInheritedFields,
+            requiredFieldStyle = requiredStyle
         )
     }
 }

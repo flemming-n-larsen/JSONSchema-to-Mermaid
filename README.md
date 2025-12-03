@@ -29,6 +29,9 @@ jsonschema-to-mermaid [OPTIONS] [<source>] [<output>]
 - `-d, --source-dir DIR`     Directory with schema files (default: current directory)
 - `-o, --output FILE`        Output file
 - `--enum-style STYLE`       Enum rendering style: `inline` (default), `note`, or `class`
+- `--arrays-as-relation`     Render arrays as relationships (default). Pair with `--arrays-inline` to force inline fields.
+- `--arrays-inline`          Inline array properties (suppresses relationship arrows for arrays)
+- `--required-style STYLE`   Required marker style: `plus` (default), `none`, or `suffix-q` (`suffix-q` appends `?` to optional names)
 - `--english-singularizer`   Use English singularization for array item names (default: true). Disable for non-English
   diagrams.
 - `--show-inherited-fields`  Display inherited fields on child classes instead of hiding them.

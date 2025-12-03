@@ -4,18 +4,6 @@ This file lists remaining tasks identified during the review that have NOT yet b
 
 ## ✅ Completed Since Last Review
 
-13. Cycle Detection Test Coverage Enhancement
-    - Problem: Only simple 2-node cycle tested.
-    - Action: Add 3+ node cycle case, and ensure message chain ordering consistent.
-    - Acceptance: Additional cycle test passes.
-
-11. Inheritance Visualization Preference
-    - Problem: Behavior fixed to hide inherited fields; some users may want them.
-    - Action: Add flag `--show-inherited-fields`.
-    - Acceptance: Tests verify toggled display. ✅
-
-## 🟠 Priority: Should Fix Soon (Post-0.1.0 if Needed)
-
 6. CLI Configuration Flags
     - Problem: Preferences (arrays as relations, required marker style, enum rendering mode) hardcoded.
     - Action: Figure out which options to expose and there names.

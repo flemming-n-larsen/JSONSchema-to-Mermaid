@@ -49,6 +49,18 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
         "--enum-style",
         help = "Enum rendering style: inline, note, or class (default: inline)"
     )
+    private val arraysAsRelation: Boolean by option(
+        "--arrays-as-relation",
+        help = "Render arrays as relationships (default: true)"
+    ).flag(default = true)
+    private val arraysInline: Boolean by option(
+        "--arrays-inline",
+        help = "Render arrays as inline fields (overrides --arrays-as-relation)"
+    ).flag(default = false)
+    private val requiredStyleOption: String? by option(
+        "--required-style",
+        help = "Required field marker style: plus (default), none, or suffix-q"
+    )
     private val useEnglishSingularizer: Boolean by option(
         "--english-singularizer",
         help = "Use English singularization for array item names (default: true). Disable for non-English diagrams."
@@ -83,7 +95,10 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
             noClassDiagramHeader = noClassDiagramHeader,
             enumStyleOption = enumStyleOption,
             useEnglishSingularizer = useEnglishSingularizer,
-            showInheritedFields = showInheritedFields
+            showInheritedFields = showInheritedFields,
+            arraysAsRelation = arraysAsRelation,
+            arraysInline = arraysInline,
+            requiredStyleOption = requiredStyleOption
         )
         val cliService = CliService(
             options

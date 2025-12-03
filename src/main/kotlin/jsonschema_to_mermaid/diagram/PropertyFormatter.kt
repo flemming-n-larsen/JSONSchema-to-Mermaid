@@ -9,42 +9,37 @@ import jsonschema_to_mermaid.jsonschema.Property
  */
 object PropertyFormatter {
 
-    fun formatEnumInlineField(propertyName: String, property: Property, isRequired: Boolean): String {
+    fun formatEnumInlineField(propertyName: String, property: Property, isRequired: Boolean, preferences: Preferences): String {
         val enumVals = property.enum?.joinToString("|") ?: ""
         val typeStr = "{$enumVals}"
-        return formatFieldWithMultiplicity(typeStr, propertyName, isRequired)
+        return formatFieldWithMultiplicity(typeStr, propertyName, isRequired, preferences)
     }
 
-    fun formatInlineField(propertyName: String, refType: String, isRequired: Boolean): String {
-        return formatFieldWithMultiplicity(refType, propertyName, isRequired)
+    fun formatInlineField(propertyName: String, refType: String, isRequired: Boolean, preferences: Preferences): String {
+        return formatFieldWithMultiplicity(refType, propertyName, isRequired, preferences)
     }
 
     fun formatArrayField(propertyName: String, items: Property?, isRequired: Boolean, preferences: Preferences): String {
         val itemType = items?.type ?: items?.format
         val mapped = primitiveTypeName(itemType)
         val singularName = if (preferences.useEnglishSingularizer) EnglishSingularizer.toSingular(propertyName) else propertyName.replaceFirstChar { it.uppercaseChar() }
-        return formatFieldWithMultiplicity("$mapped[]", singularName, isRequired)
-    }
-
-    // Deprecated: use formatArrayField with preferences
-    fun formatArrayField(propertyName: String, items: Property?, isRequired: Boolean): String {
-        throw UnsupportedOperationException("Use formatArrayField(propertyName, items, isRequired, preferences) instead.")
+        return formatFieldWithMultiplicity("$mapped[]", singularName, isRequired, preferences)
     }
 
     fun formatField(propertyName: String, property: Property?, preferences: Preferences, isRequired: Boolean = false): String {
         return when {
-            property?.additionalProperties != null -> formatAdditionalPropertiesField(propertyName, property, isRequired)
-            property?.patternProperties != null -> formatPatternPropertiesField(propertyName, property, isRequired)
-            property == null -> formatPrimitiveField(propertyName, null, isRequired)
+            property?.additionalProperties != null -> formatAdditionalPropertiesField(propertyName, property, isRequired, preferences)
+            property?.patternProperties != null -> formatPatternPropertiesField(propertyName, property, isRequired, preferences)
+            property == null -> formatPrimitiveField(propertyName, null, isRequired, preferences)
             property.type == "array" && property.items != null && !preferences.arraysAsRelation -> formatArrayPropertyField(propertyName, property, isRequired, preferences)
-            property.`$ref` != null -> formatReferenceField(propertyName, property, isRequired)
-            else -> formatPrimitiveField(propertyName, property, isRequired)
+            property.`$ref` != null -> formatReferenceField(propertyName, property, isRequired, preferences)
+            else -> formatPrimitiveField(propertyName, property, isRequired, preferences)
         }
     }
 
-    private fun formatAdditionalPropertiesField(propertyName: String, property: Property, isRequired: Boolean): String {
+    private fun formatAdditionalPropertiesField(propertyName: String, property: Property, isRequired: Boolean, preferences: Preferences): String {
         val mapped = extractAdditionalPropertiesType(property.additionalProperties)
-        return formatFieldWithMultiplicity("Map~String, $mapped~", propertyName, isRequired)
+        return formatFieldWithMultiplicity("Map~String, $mapped~", propertyName, isRequired, preferences)
     }
 
     private fun extractAdditionalPropertiesType(additionalProperties: Any?): String {
@@ -56,9 +51,9 @@ object PropertyFormatter {
         }
     }
 
-    private fun formatPatternPropertiesField(propertyName: String, property: Property, isRequired: Boolean): String {
+    private fun formatPatternPropertiesField(propertyName: String, property: Property, isRequired: Boolean, preferences: Preferences): String {
         val mapped = extractPatternPropertiesType(property.patternProperties)
-        return formatFieldWithMultiplicity("Map~String, $mapped~", propertyName, isRequired)
+        return formatFieldWithMultiplicity("Map~String, $mapped~", propertyName, isRequired, preferences)
     }
 
     private fun extractPatternPropertiesType(patternProperties: Map<String, Property>?): String {
@@ -75,30 +70,32 @@ object PropertyFormatter {
         val itemType = property.items?.type ?: property.items?.format
         val mapped = primitiveTypeName(itemType)
         val singularName = if (preferences.useEnglishSingularizer) EnglishSingularizer.toSingular(propertyName) else propertyName.replaceFirstChar { it.uppercaseChar() }
-        return formatFieldWithMultiplicity("$mapped[]", singularName, isRequired)
+        return formatFieldWithMultiplicity("$mapped[]", singularName, isRequired, preferences)
     }
 
-    // Deprecated: use formatArrayPropertyField with preferences
-    private fun formatArrayPropertyField(propertyName: String, property: Property, isRequired: Boolean): String {
-        throw UnsupportedOperationException("Use formatArrayPropertyField(propertyName, property, isRequired, preferences) instead.")
-    }
-
-    private fun formatReferenceField(propertyName: String, property: Property, isRequired: Boolean): String {
+    private fun formatReferenceField(propertyName: String, property: Property, isRequired: Boolean, preferences: Preferences): String {
         val refName = refToClassName(property.`$ref`)
-        return formatFieldWithMultiplicity(refName, propertyName, isRequired)
+        return formatFieldWithMultiplicity(refName, propertyName, isRequired, preferences)
     }
 
-    private fun formatPrimitiveField(propertyName: String, property: Property?, isRequired: Boolean): String {
+    private fun formatPrimitiveField(propertyName: String, property: Property?, isRequired: Boolean, preferences: Preferences): String {
         val type = property?.type ?: property?.format
         val kotlinType = primitiveTypeName(type)
-        return formatFieldWithMultiplicity(kotlinType, propertyName, isRequired)
+        return formatFieldWithMultiplicity(kotlinType, propertyName, isRequired, preferences)
     }
 
-    private fun formatFieldWithMultiplicity(type: String, propertyName: String, isRequired: Boolean): String {
-        return if (isRequired) {
-            "+$type $propertyName"
-        } else {
-            "$type $propertyName [0..1]"
+    private fun formatFieldWithMultiplicity(type: String, propertyName: String, isRequired: Boolean, preferences: Preferences): String {
+        val adjustedName = when {
+            !isRequired && preferences.requiredFieldStyle == RequiredFieldStyle.SUFFIX_Q -> "$propertyName?"
+            else -> propertyName
+        }
+        return when {
+            isRequired && preferences.requiredFieldStyle == RequiredFieldStyle.PLUS -> "+$type $adjustedName"
+            isRequired && preferences.requiredFieldStyle == RequiredFieldStyle.NONE -> "$type $adjustedName"
+            isRequired && preferences.requiredFieldStyle == RequiredFieldStyle.SUFFIX_Q -> "$type $adjustedName"
+            preferences.requiredFieldStyle == RequiredFieldStyle.NONE -> "$type $adjustedName"
+            preferences.requiredFieldStyle == RequiredFieldStyle.SUFFIX_Q -> "$type $adjustedName"
+            else -> "$type $adjustedName [0..1]"
         }
     }
 }

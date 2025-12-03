@@ -60,4 +60,32 @@ class AppEnumStyleCliTest : FunSpec({
         val defaultOutput = runCli(schemaPath)
         defaultOutput.shouldNotContain("String parentField [0..1]")
     }
+
+    test("CLI --arrays-inline renders arrays as inline fields") {
+        val schemaPath = resourcePath("/readme_examples/order.schema.json").toString()
+        val output = runCli(schemaPath, "--arrays-inline")
+        output.shouldContain("Object[] Item")
+        output.shouldNotContain("Order \"1\" --> \"*\" OrderItem : items")
+    }
+
+    test("CLI default renders arrays as relations") {
+        val schemaPath = resourcePath("/readme_examples/order.schema.json").toString()
+        val output = runCli(schemaPath)
+        output.shouldContain("Order \"1\" --> \"*\" OrderItem : items")
+    }
+
+    test("CLI --required-style none removes markers") {
+        val schemaPath = resourcePath("/readme_examples/person.schema.json").toString()
+        val output = runCli(schemaPath, "--required-style", "none")
+        output.shouldNotContain("+")
+        output.shouldNotContain("[0..1]")
+        output.shouldContain("Integer id")
+    }
+
+    test("CLI --required-style suffix-q appends question mark to optional") {
+        val schemaPath = resourcePath("/readme_examples/person.schema.json").toString()
+        val output = runCli(schemaPath, "--required-style", "suffix-q")
+        output.shouldContain("String email?")
+        output.shouldNotContain("[0..1]")
+    }
 })
