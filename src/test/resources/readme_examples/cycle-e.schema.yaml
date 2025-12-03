@@ -1,0 +1,11 @@
+$id: cycle-e.schema.yaml
+$schema: https://json-schema.org/draft/2020-12/schema
+title: CycleE
+extends:
+  $ref: cycle-c.schema.yaml
+properties:
+  eField:
+    type: array
+    items:
+      type: string
+

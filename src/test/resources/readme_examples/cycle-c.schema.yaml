@@ -1,0 +1,9 @@
+$id: cycle-c.schema.yaml
+$schema: https://json-schema.org/draft/2020-12/schema
+title: CycleC
+extends:
+  $ref: cycle-d.schema.yaml
+properties:
+  cField:
+    type: boolean
+

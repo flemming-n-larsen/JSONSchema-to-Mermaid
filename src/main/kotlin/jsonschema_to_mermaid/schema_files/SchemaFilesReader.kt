@@ -17,7 +17,7 @@ import kotlin.streams.toList
 /**
  * Context for reading schemas, encapsulating the current visiting set for cycle detection.
  */
-private data class SchemaReadContext(val visiting: MutableSet<Path> = mutableSetOf())
+private data class SchemaReadContext(val visiting: MutableSet<Path> = LinkedHashSet())
 
 object SchemaFilesReader {
 
@@ -152,7 +152,10 @@ object SchemaFilesReader {
 }
 
 private fun formatCycleMessage(visiting: Set<Path>, current: Path): String {
-    val chain = (visiting.toList() + current).joinToString(" -> ") { it.toAbsolutePath().toString() }
+    val chain = buildList<Path> {
+        addAll(visiting)
+        add(current)
+    }.joinToString(" -> ") { it.toAbsolutePath().toString() }
     return "Inheritance cycle detected while resolving extends. Chain: $chain"
 }
 

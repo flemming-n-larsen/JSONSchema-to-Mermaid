@@ -64,6 +64,21 @@ class SchemaFileReaderTest : FunSpec({
         }
     }
 
+    test("readSchemas reports ordered chain for 3-node cycle") {
+        val cycleC = resourcePath("/readme_examples/cycle-c.schema.yaml")
+        val cycleD = resourcePath("/readme_examples/cycle-d.schema.yaml")
+        val cycleE = resourcePath("/readme_examples/cycle-e.schema.yaml")
+
+        val exception = shouldThrow<InheritanceCycleException> {
+            SchemaFilesReader.readSchemas(setOf(cycleC))
+        }
+
+        val expectedChain = listOf(cycleC, cycleD, cycleE, cycleC)
+            .joinToString(" -> ") { it.toAbsolutePath().toString() }
+
+        exception.message shouldBe "Inheritance cycle detected while resolving extends. Chain: $expectedChain"
+    }
+
     test($$"readSchemas resolves external $ref from file") {
         val schemas = SchemaFilesReader.readSchemas(
             setOf(resourcePath("/readme_examples/external-ref-main.schema.json"))
