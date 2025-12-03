@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.20")
 
     // Command-line (CLI) support
     implementation("com.github.ajalt.clikt", "clikt", "5.0.3")
@@ -27,7 +27,7 @@ dependencies {
     // Testing
 
     // Kotlin test (required)
-    testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlin:kotlin-test:2.2.20")
 
     // Kotest (Kotlin testing)
     testImplementation("io.kotest:kotest-runner-junit5:6.0.7")
