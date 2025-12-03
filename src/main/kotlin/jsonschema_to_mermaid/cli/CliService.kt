@@ -18,7 +18,8 @@ data class CliOptions(
     val outputPath: Path? = null,
     val noClassDiagramHeader: Boolean = false,
     val enumStyleOption: String? = null,
-    val useEnglishSingularizer: Boolean = true
+    val useEnglishSingularizer: Boolean = true,
+    val showInheritedFields: Boolean = false
 )
 
 /**
@@ -150,7 +151,8 @@ class CliService(
         }
         return Preferences(
             enumStyle = enumStyle,
-            useEnglishSingularizer = options.useEnglishSingularizer
+            useEnglishSingularizer = options.useEnglishSingularizer,
+            showInheritedFields = options.showInheritedFields
         )
     }
 }

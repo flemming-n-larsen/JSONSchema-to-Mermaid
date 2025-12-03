@@ -17,7 +17,7 @@ object MermaidDiagramBuilder {
     ): String {
         // Reset name registry for each diagram build
         ClassNameResolver.resetRegistry()
-        InheritanceHandler.setLoadedSchemas(schemaFiles.toList())
+        InheritanceHandler.setLoadedSchemas(schemaFiles.toList(), preferences.showInheritedFields)
         val ctx = createDiagramContext(preferences)
         DefinitionProcessor.processDefinitions(schemaFiles, ctx)
         TopLevelSchemaProcessor.processTopLevelSchemas(schemaFiles, ctx)

@@ -10,9 +10,11 @@ import jsonschema_to_mermaid.diagram.ClassNameResolver.refToClassName
 object InheritanceHandler {
 
     private var loadedSchemas: List<SchemaFileInfo> = emptyList()
+    private var showInheritedFields: Boolean = false
 
-    fun setLoadedSchemas(schemas: List<SchemaFileInfo>) {
+    fun setLoadedSchemas(schemas: List<SchemaFileInfo>, showInheritedFields: Boolean) {
         loadedSchemas = schemas
+        this.showInheritedFields = showInheritedFields
     }
 
     fun handleInheritance(
@@ -56,6 +58,11 @@ object InheritanceHandler {
 
     private fun matchesSchemaByTitle(schemaFile: SchemaFileInfo, ref: String): Boolean {
         return schemaFile.schema.title != null && ref.contains(schemaFile.schema.title)
+    }
+
+    fun shouldSkipInheritedProperty(schemaFile: SchemaFileInfo, propertyName: String): Boolean {
+        if (showInheritedFields) return false
+        return isInheritedProperty(schemaFile, propertyName)
     }
 
     fun isInheritedProperty(schemaFile: SchemaFileInfo, propertyName: String): Boolean {

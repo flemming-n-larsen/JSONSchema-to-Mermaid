@@ -53,6 +53,10 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
         "--english-singularizer",
         help = "Use English singularization for array item names (default: true). Disable for non-English diagrams."
     ).flag(default = true)
+    private val showInheritedFields: Boolean by option(
+        "--show-inherited-fields",
+        help = "Display inherited properties on child classes (default: hidden)"
+    ).flag(default = false)
 
     init {
         versionOption(loadVersionFromProperties())
@@ -78,7 +82,8 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
             outputPath = outputPath,
             noClassDiagramHeader = noClassDiagramHeader,
             enumStyleOption = enumStyleOption,
-            useEnglishSingularizer = useEnglishSingularizer
+            useEnglishSingularizer = useEnglishSingularizer,
+            showInheritedFields = showInheritedFields
         )
         val cliService = CliService(
             options

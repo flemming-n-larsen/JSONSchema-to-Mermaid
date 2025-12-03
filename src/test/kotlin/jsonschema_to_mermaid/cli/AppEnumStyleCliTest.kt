@@ -52,4 +52,12 @@ class AppEnumStyleCliTest : FunSpec({
         output.shouldNotContain("{A|B|C} status")
         output.shouldNotContain("note for EnumExample")
     }
+
+    test("CLI --show-inherited-fields displays inherited properties") {
+        val schemaPath = resourcePath("/readme_examples/child.schema.yaml").toString()
+        val output = runCli(schemaPath, "--show-inherited-fields")
+        output.shouldContain("String parentField [0..1]")
+        val defaultOutput = runCli(schemaPath)
+        defaultOutput.shouldNotContain("String parentField [0..1]")
+    }
 })

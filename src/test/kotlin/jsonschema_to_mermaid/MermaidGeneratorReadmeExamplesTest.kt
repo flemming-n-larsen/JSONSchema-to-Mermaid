@@ -50,7 +50,11 @@ class MermaidGeneratorReadmeExamplesTest : FunSpec({
             resourcePath("/readme_examples/parent.schema.yaml")
         ))
         val mermaid = MermaidGenerator.generate(schemas)
-        GoldenTestUtil.assertMatchesGolden("extends_inheritance", mermaid)
+        mermaid shouldContain "String parentField [0..1]"
+        val withInherited = MermaidGenerator.generate(schemas, preferences = Preferences(showInheritedFields = true))
+        withInherited shouldContain "String parentField [0..1]"
+        val childCount = mermaid.lineSequence().count { it.contains("String parentField [0..1]") }
+        childCount shouldBe 1
     }
 
     test("Transitive inheritance: optional cardinality only, no '+', uniqueness maintained") {

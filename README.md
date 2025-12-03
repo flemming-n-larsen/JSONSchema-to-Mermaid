@@ -25,16 +25,17 @@ jsonschema-to-mermaid [OPTIONS] [<source>] [<output>]
 
 **Options:**
 
-- `-s, --source FILE`      Input schema file (relative to directory or CWD)
-- `-d, --source-dir DIR`   Directory with schema files (default: current directory)
-- `-o, --output FILE`      Output file
-- `--enum-style STYLE`     Enum rendering style: `inline` (default), `note`, or `class`
-- `--english-singularizer` Use English singularization for array item names (default: true). Disable for non-English
+- `-s, --source FILE`        Input schema file (relative to directory or CWD)
+- `-d, --source-dir DIR`     Directory with schema files (default: current directory)
+- `-o, --output FILE`        Output file
+- `--enum-style STYLE`       Enum rendering style: `inline` (default), `note`, or `class`
+- `--english-singularizer`   Use English singularization for array item names (default: true). Disable for non-English
   diagrams.
-- `-h, --help`             Show help
-- `-V, --version`          Show version
-- `--no-classdiagram-header`  Suppress the `classDiagram` header in Mermaid output. Useful for embedding the diagram
-  body in a larger Mermaid document or when the header is added automatically by another tool.
+- `--show-inherited-fields`  Display inherited fields on child classes instead of hiding them.
+- `-h, --help`               Show help
+- `-V, --version`            Show version
+- `--no-classdiagram-header` Suppress the `classDiagram` header in Mermaid output. Useful for embedding the diagram body
+  in a larger Mermaid document or when the header is added automatically by another tool.
 
 **Behavior:**
 

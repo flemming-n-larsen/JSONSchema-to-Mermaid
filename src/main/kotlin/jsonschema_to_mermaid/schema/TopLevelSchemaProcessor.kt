@@ -51,7 +51,7 @@ object TopLevelSchemaProcessor {
         property: jsonschema_to_mermaid.jsonschema.Property,
         ctx: DiagramGenerationContext
     ) {
-        if (InheritanceHandler.isInheritedProperty(schemaFile, propertyName)) return
+        if (InheritanceHandler.shouldSkipInheritedProperty(schemaFile, propertyName)) return
 
         val isRequired = schemaFile.schema.required.contains(propertyName)
 
