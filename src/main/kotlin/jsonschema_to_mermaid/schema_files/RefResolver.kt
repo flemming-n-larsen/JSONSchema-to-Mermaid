@@ -44,6 +44,7 @@ object RefResolver {
         return parseText(ref, text)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun parseFile(file: File): Map<String, Any> {
         val ext = file.extension.lowercase()
         FileReader(file).use { reader ->
@@ -55,6 +56,7 @@ object RefResolver {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun parseText(ref: String, text: String): Map<String, Any> {
         return when {
             ref.endsWith(".json") -> gson.fromJson(text, Map::class.java) as Map<String, Any>
@@ -63,4 +65,3 @@ object RefResolver {
         }
     }
 }
-

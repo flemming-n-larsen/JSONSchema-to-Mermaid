@@ -9,6 +9,7 @@ import jsonschema_to_mermaid.exception.InheritanceCycleException
 import test_util.resourcePath
 import java.io.FileNotFoundException
 
+@Suppress("unused")
 class SchemaFileReaderTest : FunSpec({
 
     test("readSchemas should read a valid JSON schema file") {
@@ -63,7 +64,7 @@ class SchemaFileReaderTest : FunSpec({
         }
     }
 
-    test("readSchemas resolves external $ref from file") {
+    test($$"readSchemas resolves external $ref from file") {
         val schemas = SchemaFilesReader.readSchemas(
             setOf(resourcePath("/readme_examples/external-ref-main.schema.json"))
         )
@@ -73,7 +74,7 @@ class SchemaFileReaderTest : FunSpec({
         main.properties?.containsKey("externalProperty") shouldBe true
     }
 
-    test("readSchemas resolves external $ref from HTTP URL") {
+    test($$"readSchemas resolves external $ref from HTTP URL") {
         val schemas = SchemaFilesReader.readSchemas(
             setOf(resourcePath("/readme_examples/http-ref-main.schema.json"))
         )

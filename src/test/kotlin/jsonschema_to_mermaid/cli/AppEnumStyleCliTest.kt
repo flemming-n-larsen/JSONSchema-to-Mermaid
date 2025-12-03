@@ -8,6 +8,7 @@ import test_util.resourcePath
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
+@Suppress("unused")
 class AppEnumStyleCliTest : FunSpec({
     // Helper to run the CLI and capture stdout (Mermaid output); stderr diagnostics are discarded
     fun runCli(vararg args: String): String {
