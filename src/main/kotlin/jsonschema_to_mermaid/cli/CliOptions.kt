@@ -20,7 +20,8 @@ data class CliOptions(
     val useEnglishSingularizer: Boolean = true,
     val showInheritedFields: Boolean = false,
     val arraysOption: String? = null,
-    val requiredStyleOption: String? = null
+    val requiredStyleOption: String? = null,
+    val allOfModeOption: String? = null
 ) {
     /**
      * Returns the effective output path, preferring the option over the argument.

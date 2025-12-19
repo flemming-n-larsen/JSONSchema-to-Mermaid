@@ -11,6 +11,7 @@ data class Schema(
     val definitions: Map<String, Schema>? = mapOf(),
     val required: List<String> = emptyList(),
     val extends: Extends? = null,
+    val allOf: List<Property>? = null,
     val inheritedPropertyNames: List<String>? = null,
 )
 

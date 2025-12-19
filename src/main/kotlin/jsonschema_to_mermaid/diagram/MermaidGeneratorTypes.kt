@@ -19,6 +19,15 @@ enum class RequiredFieldStyle {
 }
 
 /**
+ * Controls how allOf composition is visualized in Mermaid diagrams.
+ */
+enum class AllOfMode {
+    MERGE,    // Merge all object fields into the current class (default)
+    INHERIT,  // Treat each object in allOf as a superclass (draw inheritance arrows)
+    COMPOSE   // Treat each object in allOf as an aggregation/association (draw composition arrows)
+}
+
+/**
  * Preferences for customizing Mermaid diagram generation.
  */
 data class Preferences(
@@ -26,7 +35,8 @@ data class Preferences(
     val enumStyle: EnumStyle = EnumStyle.INLINE,
     val useEnglishSingularizer: Boolean = true, // New option for array item naming
     val showInheritedFields: Boolean = false,
-    val requiredFieldStyle: RequiredFieldStyle = RequiredFieldStyle.PLUS
+    val requiredFieldStyle: RequiredFieldStyle = RequiredFieldStyle.PLUS,
+    val allOfMode: AllOfMode = AllOfMode.MERGE
 )
 
 /**

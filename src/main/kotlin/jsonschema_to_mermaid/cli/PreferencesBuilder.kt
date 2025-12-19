@@ -1,6 +1,7 @@
 package jsonschema_to_mermaid.cli
 
 import com.google.gson.JsonObject
+import jsonschema_to_mermaid.diagram.AllOfMode
 import jsonschema_to_mermaid.diagram.EnumStyle
 import jsonschema_to_mermaid.diagram.Preferences
 import jsonschema_to_mermaid.diagram.RequiredFieldStyle
@@ -30,7 +31,8 @@ class PreferencesBuilder(
             enumStyle = resolveEnumStyle(config),
             useEnglishSingularizer = options.useEnglishSingularizer,
             showInheritedFields = options.showInheritedFields,
-            requiredFieldStyle = resolveRequiredStyle(config)
+            requiredFieldStyle = resolveRequiredStyle(config),
+            allOfMode = resolveAllOfMode(config)
         )
     }
 
@@ -67,6 +69,18 @@ class PreferencesBuilder(
         "none" -> RequiredFieldStyle.NONE
         "suffix-q" -> RequiredFieldStyle.SUFFIX_Q
         else -> throw InvalidOptionException("Invalid requiredStyle in $source: $value")
+    }
+
+    private fun resolveAllOfMode(config: JsonObject?): AllOfMode =
+        options.allOfModeOption?.let { parseAllOfMode(it, "CLI option") }
+            ?: configFileResolver.getString(config, "allOfMode")?.let { parseAllOfMode(it, "config file") }
+            ?: AllOfMode.MERGE
+
+    private fun parseAllOfMode(value: String, source: String): AllOfMode = when (value.lowercase()) {
+        "merge" -> AllOfMode.MERGE
+        "inherit" -> AllOfMode.INHERIT
+        "compose" -> AllOfMode.COMPOSE
+        else -> throw InvalidOptionException("Invalid allOfMode in $source: $value")
     }
 }
 

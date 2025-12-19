@@ -57,6 +57,10 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
         "--required-style",
         help = "Required field marker style: plus (default), none, or suffix-q"
     )
+    private val allOfModeOption: String? by option(
+        "--allof-mode",
+        help = "How to visualize allOf composition: merge (default), inherit, or compose"
+    )
     private val useEnglishSingularizer: Boolean by option(
         "--english-singularizer",
         help = "Use English singularization for array item names (default: true). Disable for non-English diagrams."
@@ -91,7 +95,8 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
             useEnglishSingularizer = useEnglishSingularizer,
             showInheritedFields = showInheritedFields,
             arraysOption = resolvedArraysOption,
-            requiredStyleOption = requiredStyleOption
+            requiredStyleOption = requiredStyleOption,
+            allOfModeOption = allOfModeOption
         )
         val cliService = CliService(
             options = options,

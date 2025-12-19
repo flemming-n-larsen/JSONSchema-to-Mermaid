@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Employee",
+  "allOf": [
+    { "$ref": "#/definitions/Person" },
+    { "$ref": "#/definitions/Worker" }
+  ],
+  "properties": {
+    "employeeId": { "type": "string" }
+  },
+  "definitions": {
+    "Person": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "age": { "type": "integer" }
+      }
+    },
+    "Worker": {
+      "type": "object",
+      "properties": {
+        "jobTitle": { "type": "string" },
+        "department": { "type": "string" }
+      }
+    }
+  }
+}

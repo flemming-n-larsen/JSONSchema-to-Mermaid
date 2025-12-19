@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Product",
+  "allOf": [
+    { "$ref": "#/definitions/BaseProduct" },
+    {
+      "type": "object",
+      "properties": {
+        "discount": { "type": "number" }
+      }
+    }
+  ],
+  "properties": {
+    "sku": { "type": "string" }
+  },
+  "definitions": {
+    "BaseProduct": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" }
+      }
+    }
+  }
+}

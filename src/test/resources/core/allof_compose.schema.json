@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Car",
+  "allOf": [
+    { "$ref": "#/definitions/Engine" },
+    { "$ref": "#/definitions/Wheels" }
+  ],
+  "properties": {
+    "model": { "type": "string" }
+  },
+  "definitions": {
+    "Engine": {
+      "type": "object",
+      "properties": {
+        "horsepower": { "type": "integer" },
+        "cylinders": { "type": "integer" }
+      }
+    },
+    "Wheels": {
+      "type": "object",
+      "properties": {
+        "count": { "type": "integer" },
+        "size": { "type": "string" }
+      }
+    }
+  }
+}

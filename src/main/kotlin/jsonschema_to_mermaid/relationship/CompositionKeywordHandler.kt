@@ -1,12 +1,11 @@
 package jsonschema_to_mermaid.relationship
 
+import jsonschema_to_mermaid.diagram.AllOfMode
 import jsonschema_to_mermaid.diagram.NameSanitizer
 import jsonschema_to_mermaid.diagram.ClassNameResolver
 import jsonschema_to_mermaid.schema.PropertyMapper
-import jsonschema_to_mermaid.diagram.PropertyFormatter
 import jsonschema_to_mermaid.diagram.DiagramGenerationContext
 import jsonschema_to_mermaid.schema.ClassRegistry
-import jsonschema_to_mermaid.relationship.RelationshipBuilder
 import jsonschema_to_mermaid.jsonschema.Property
 
 /**
@@ -41,19 +40,79 @@ object CompositionKeywordHandler {
     ): Boolean {
         if (property.allOf.isNullOrEmpty()) return false
 
-        val refs = property.allOf.filter { it.`$ref` != null }
-        val inlines = property.allOf.filter { it.`$ref` == null && it.properties != null }
+        when (ctx.preferences.allOfMode) {
+            AllOfMode.MERGE -> handleAllOfMerge(className, propertyName, property, ctx)
+            AllOfMode.INHERIT -> handleAllOfInherit(className, property, ctx)
+            AllOfMode.COMPOSE -> handleAllOfCompose(className, property, ctx)
+        }
+        return true
+    }
 
-        var handled = false
+    private fun handleAllOfMerge(
+        className: String,
+        propertyName: String,
+        property: Property,
+        ctx: DiagramGenerationContext
+    ) {
+        val allOfList = property.allOf ?: return
+        val refs = allOfList.filter { it.`$ref` != null }
+        val inlines = allOfList.filter { it.`$ref` == null && it.properties != null }
+
         if (refs.isNotEmpty()) {
             processAllOfReferences(className, propertyName, refs, ctx)
-            handled = true
         }
         if (inlines.isNotEmpty()) {
             processAllOfInlines(className, inlines, ctx)
-            handled = true
         }
-        return handled
+    }
+
+    private fun handleAllOfInherit(
+        className: String,
+        property: Property,
+        ctx: DiagramGenerationContext
+    ) {
+        val allOfList = property.allOf ?: return
+        allOfList.forEach { allOfItem ->
+            when {
+                allOfItem.`$ref` != null -> {
+                    // Draw inheritance arrow: parentClass <|-- childClass
+                    val parentClassName = ClassNameResolver.refToClassName(allOfItem.`$ref`)
+                    ctx.relations.add("$parentClassName <|-- $className")
+                }
+                allOfItem.type == "object" && allOfItem.properties != null -> {
+                    // Inline object - merge properties as fallback
+                    processAllOfInlines(className, listOf(allOfItem), ctx)
+                }
+                else -> {
+                    // Non-object types - merge as fallback
+                    // This is a graceful fallback for schemas that aren't pure objects
+                }
+            }
+        }
+    }
+
+    private fun handleAllOfCompose(
+        className: String,
+        property: Property,
+        ctx: DiagramGenerationContext
+    ) {
+        val allOfList = property.allOf ?: return
+        allOfList.forEach { allOfItem ->
+            when {
+                allOfItem.`$ref` != null -> {
+                    // Draw composition arrow: parentClass *-- childClass
+                    val componentClassName = ClassNameResolver.refToClassName(allOfItem.`$ref`)
+                    ctx.relations.add("$className *-- $componentClassName")
+                }
+                allOfItem.type == "object" && allOfItem.properties != null -> {
+                    // Inline object - merge properties as fallback
+                    processAllOfInlines(className, listOf(allOfItem), ctx)
+                }
+                else -> {
+                    // Non-object types - merge as fallback
+                }
+            }
+        }
     }
 
     private fun processAllOfReferences(

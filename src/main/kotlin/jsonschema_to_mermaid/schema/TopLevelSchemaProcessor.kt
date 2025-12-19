@@ -28,10 +28,27 @@ object TopLevelSchemaProcessor {
     ) {
         val className = ClassNameResolver.getClassName(schemaFile)
         ClassRegistry.ensureClassEntry(ctx.classProperties, className)
-        
+
         InheritanceHandler.handleInheritance(schemaFile, className, ctx.relations)
-        
+
+        // Handle allOf at the schema level (for composition patterns)
+        if (!schemaFile.schema.allOf.isNullOrEmpty()) {
+            handleSchemaLevelAllOf(schemaFile, className, ctx)
+        }
+
         processSchemaProperties(schemaFile, className, ctx)
+    }
+
+    private fun handleSchemaLevelAllOf(
+        schemaFile: SchemaFileInfo,
+        className: String,
+        ctx: DiagramGenerationContext
+    ) {
+        // Create a synthetic property to represent the schema-level allOf
+        val syntheticProperty = jsonschema_to_mermaid.jsonschema.Property(
+            allOf = schemaFile.schema.allOf
+        )
+        CompositionKeywordHandler.handleCompositionKeywords(className, "", syntheticProperty, ctx)
     }
 
     private fun processSchemaProperties(
