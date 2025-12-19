@@ -10,10 +10,10 @@ This file lists remaining tasks identified during the review that have NOT yet b
     - Add integration tests that run the `App().main` invocation to exercise Clikt parsing together with config-file discovery.
     - Add a README example that shows `--config-file` usage on the command line (short CLI examples).
 
-## 🟡 Priority: Nice to Have / Future Enhancements
-
-16. [ ] Composition Visualization Options
+16. [X] Composition Visualization Options
     - Offer `--allof-mode=merge|inherit|compose` and treat multiple object `allOf` segments as inheritance or aggregation.
+
+## 🟡 Priority: Nice to Have / Future Enhancements
 
 17. [ ] PatternProperties Rendering Modes
     - Choose representation: field note vs separate synthetic class vs Map<Regex,Type>.
@@ -57,6 +57,9 @@ This file lists remaining tasks identified during the review that have NOT yet b
 
 29. [ ] Mermaid Theme / Styling Hooks
     - Provide placeholders for customizing colors or stereotypes (requires Mermaid syntax extensions or comments).
+
+30. [ ] Make sure we have 100% test coverage
+
 
 ## Cross-Cutting Acceptance Criteria Template (for each implemented item)
 - Functionality implemented behind a flag or default behavior clarified.

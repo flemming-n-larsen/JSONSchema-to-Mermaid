@@ -1,7 +1,7 @@
 # Open Spec: Modern Kotlin Code Style
 
 ## Status
-`complete`
+`complete` - Archived on 2025-12-19
 
 ## Overview
 This specification defines the modern Kotlin code style guidelines for the JSONSchema-to-Mermaid project. All Kotlin code (both existing and new) must follow these guidelines to ensure idiomatic, functional, and maintainable code.
@@ -339,4 +339,6 @@ When refactoring:
 
 ## Changelog
 - 2025-12-19: Initial specification created and all existing code refactored to modern Kotlin style
+- 2025-12-19: Specification archived after successful codebase-wide refactoring completion
+
 
