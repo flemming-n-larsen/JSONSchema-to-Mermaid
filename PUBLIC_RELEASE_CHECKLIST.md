@@ -4,13 +4,13 @@ This file lists remaining tasks identified during the review that have NOT yet b
 
 ## ✅ Completed Since Last Review
 
-## 🟡 Priority: Nice to Have / Future Enhancements
-
-15. [ ] Additional optional followups (implementation options)
+15. [X] Additional optional followups (implementation options)
     - Add support for a user-level AND repository-level precedence policy that includes searching parent directories (e.g., walk up to the repo root).
     - Add more tests for edge cases (empty config file, unknown keys, mixed-case keys).
     - Add integration tests that run the `App().main` invocation to exercise Clikt parsing together with config-file discovery.
     - Add a README example that shows `--config-file` usage on the command line (short CLI examples).
+
+## 🟡 Priority: Nice to Have / Future Enhancements
 
 16. [ ] Composition Visualization Options
     - Offer `--allof-mode=merge|inherit|compose` and treat multiple object `allOf` segments as inheritance or aggregation.

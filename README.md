@@ -428,7 +428,21 @@ Example `js2m.json`:
 }
 ```
 
-CLI flags always override configuration file settings. Use `--config-file PATH` to point to a specific config; otherwise the tool will look for `js2m.json` / `.js2mrc` in the source directory and then in your home directory.
+CLI example:
+
+```sh
+jsonschema-to-mermaid --config-file myconfig.json schema.json
+```
+
+This will use the specified config file for rendering options. The precedence order for configuration is:
+
+1. CLI `--config-file` (explicit path)
+2. Project config in the working/source directory
+3. Repo-level config (walk up parent directories to repo root)
+4. User config in your home directory (`~/.js2m.json` or `~/.js2mrc`)
+5. Built-in defaults if no config is found
+
+CLI flags always override configuration file settings. Use `--config-file PATH` to point to a specific config; otherwise the tool will look for `js2m.json` / `.js2mrc` in the source directory, then walk up parent directories, and finally check your home directory.
 
 ### Tips for reading these examples
 

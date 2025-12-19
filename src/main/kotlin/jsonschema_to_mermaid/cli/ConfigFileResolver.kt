@@ -27,7 +27,7 @@ class ConfigFileResolver {
      */
     fun resolveConfigPath(explicitConfigPath: Path?, sourceDirectory: Path): Path? {
         return explicitConfigPath
-            ?: findProjectLevelConfig(sourceDirectory)
+            ?: findConfigInParentDirs(sourceDirectory)
             ?: findUserLevelConfig()
     }
 
@@ -35,13 +35,16 @@ class ConfigFileResolver {
      * Parses the configuration file and returns a JsonObject.
      *
      * @param configPath Path to the configuration file
-     * @return Parsed JsonObject
+     * @return Parsed JsonObject (empty object if file is empty)
      * @throws ConfigParseException if the file contains invalid JSON
      */
     fun parseConfig(configPath: Path): JsonObject {
         return try {
             val content = String(Files.readAllBytes(configPath))
-            Gson().fromJson(content, JsonObject::class.java)
+            if (content.isBlank()) {
+                return JsonObject()
+            }
+            Gson().fromJson(content, JsonObject::class.java) ?: JsonObject()
         } catch (e: JsonSyntaxException) {
             throw ConfigParseException("Invalid JSON in config file: ${e.message}", e)
         }
@@ -49,15 +52,40 @@ class ConfigFileResolver {
 
     /**
      * Safely retrieves a string value from the config object.
+     * Performs case-insensitive key lookup.
      */
     fun getString(config: JsonObject?, key: String): String? {
-        return config?.get(key)?.asString
+        if (config == null) return null
+
+        // Try exact match first
+        val exactMatch = config.get(key)
+        if (exactMatch != null) {
+            return exactMatch.asString
+        }
+
+        // Try case-insensitive match
+        val lowerKey = key.lowercase()
+        for (entry in config.entrySet()) {
+            if (entry.key.lowercase() == lowerKey) {
+                return entry.value.asString
+            }
+        }
+
+        return null
     }
 
-    private fun findProjectLevelConfig(sourceDirectory: Path): Path? {
-        return PROJECT_CONFIG_NAMES
-            .map { sourceDirectory.resolve(it) }
-            .firstOrNull { isValidConfigFile(it) }
+    private fun findConfigInParentDirs(startDir: Path): Path? {
+        var dir: Path? = startDir.toAbsolutePath()
+        while (dir != null) {
+            for (configName in PROJECT_CONFIG_NAMES) {
+                val candidate = dir.resolve(configName)
+                if (isValidConfigFile(candidate)) {
+                    return candidate
+                }
+            }
+            dir = dir.parent
+        }
+        return null
     }
 
     private fun findUserLevelConfig(): Path? {
@@ -84,4 +112,3 @@ class ConfigFileResolver {
  * Exception thrown when config file parsing fails.
  */
 class ConfigParseException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
-
