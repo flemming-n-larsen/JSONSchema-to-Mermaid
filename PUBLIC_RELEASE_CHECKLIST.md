@@ -10,13 +10,13 @@ This file lists remaining tasks identified during the review that have NOT yet b
     - Action: Add flags: `--arrays-as-relation/--arrays-inline`, `--required-style=plus|none|suffix-q`, `--enum-style=inline|note|class`.
     - Acceptance: Help text (`--help`) lists flags; tests exercise at least one flag changing output.
 
-## 🟡 Priority: Nice to Have / Future Enhancements
-
 14. Enum Stereotype Rendering (If separate class chosen)
     - Add `<<enumeration>>` stereotype for dedicated enum classes.
 
 15. Optional Field Nullability Marker
     - Use `?` suffix or separate styling when not required.
+
+## 🟡 Priority: Nice to Have / Future Enhancements
 
 16. Composition Visualization Options
     - Offer `--allof-mode=merge|inherit|compose` and treat multiple object `allOf` segments as inheritance or aggregation.
