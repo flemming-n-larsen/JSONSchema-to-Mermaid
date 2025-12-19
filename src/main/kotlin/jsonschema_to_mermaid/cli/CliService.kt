@@ -7,6 +7,10 @@ import jsonschema_to_mermaid.diagram.EnumStyle
 import jsonschema_to_mermaid.diagram.MermaidGenerator
 import jsonschema_to_mermaid.diagram.RequiredFieldStyle
 import java.nio.file.Path
+import java.nio.file.Files
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import com.google.gson.JsonSyntaxException
 
 /**
  * Data class for CLI options, making it easy to extend and maintain.
@@ -19,6 +23,7 @@ data class CliOptions(
     val outputPath: Path? = null,
     val noClassDiagramHeader: Boolean = false,
     val enumStyleOption: String? = null,
+    val configFile: Path? = null,
     val useEnglishSingularizer: Boolean = true,
     val showInheritedFields: Boolean = false,
     val arraysAsRelation: Boolean = true,
@@ -45,9 +50,39 @@ class CliService(
         printDiagnostics(sources)
         val schemas = readSchemasOrExit(sources)
         printSchemaDiagnostics(schemas)
-        val output = generateMermaidOrExit(schemas, buildPreferences())
+        val resolvedConfig = resolveConfigFile(dir)
+        val preferences = try {
+            buildPreferences(resolvedConfig)
+        } catch (e: IllegalArgumentException) {
+            // Print the error to stderr and exit gracefully
+            echo("${e.message}", true)
+            System.err.println(e.message)
+            return
+        }
+        val output = generateMermaidOrExit(schemas, preferences)
         writeOutputIfNeeded(actualOutputPath, output)
         if (actualOutputPath == null) print(output)
+    }
+
+    /**
+     * Discover a config file if not provided explicitly. Precedence:
+     * 1) explicit --config-file (already in options)
+     * 2) project-level files in the source directory: js2m.json, .js2mrc
+     * 3) user-level in HOME: .js2m.json, .js2mrc
+     */
+    private fun resolveConfigFile(sourceDir: Path): Path? {
+        if (options.configFile != null) return options.configFile
+        val candidates = listOf("js2m.json", ".js2mrc")
+        for (name in candidates) {
+            val p = sourceDir.resolve(name)
+            if (p.toFile().exists() && p.toFile().isFile) return p
+        }
+        val home = System.getProperty("user.home") ?: return null
+        for (name in listOf(".js2m.json", ".js2mrc")) {
+            val p = java.nio.file.Paths.get(home).resolve(name)
+            if (p.toFile().exists() && p.toFile().isFile) return p
+        }
+        return null
     }
 
     private fun resolveDirectoryAndFile(): Triple<Path, String?, Boolean> {
@@ -82,8 +117,9 @@ class CliService(
             val file = dir.resolve(fileName)
             if (file.toFile().exists()) sources.add(file)
         } else {
+            val excludeNames = setOf("js2m.json", ".js2mrc", ".js2m.json")
             val files = dir.toFile().listFiles { f ->
-                f.isFile && (f.name.endsWith(".json") || f.name.endsWith(".yaml") || f.name.endsWith(".yml"))
+                f.isFile && (f.name.endsWith(".json") || f.name.endsWith(".yaml") || f.name.endsWith(".yml")) && !excludeNames.contains(f.name)
             } ?: emptyArray()
             sources.addAll(files.map { it.toPath() })
         }
@@ -147,26 +183,67 @@ class CliService(
         }
     }
 
-    private fun buildPreferences(): Preferences {
+    private fun buildPreferences(resolvedConfig: Path?): Preferences {
+        // Load config file defaults (if present) and then override with explicit CLI flags.
+        var configJson: JsonObject? = null
+        if (resolvedConfig != null) {
+            try {
+                val text = String(Files.readAllBytes(resolvedConfig))
+                configJson = Gson().fromJson(text, JsonObject::class.java)
+            } catch (e: JsonSyntaxException) {
+                throw IllegalArgumentException("Invalid JSON in config file: ${e.message}")
+            }
+        }
+
+        fun configString(key: String): String? = configJson?.get(key)?.asString
+
         val enumStyle = when (options.enumStyleOption?.lowercase()) {
             "note" -> EnumStyle.NOTE
             "class" -> EnumStyle.CLASS
             null, "inline" -> EnumStyle.INLINE
             else -> throw IllegalArgumentException("Invalid enum style: ${options.enumStyleOption}")
         }
-        val arraysPreference = if (options.arraysInline) false else options.arraysAsRelation
+        val arraysPreference = when {
+            options.arraysInline -> false
+            configString("arrays") != null -> when (configString("arrays")!!.lowercase()) {
+                "inline" -> false
+                "relation" -> true
+                else -> throw IllegalArgumentException("Invalid arrays value in config: ${configString("arrays")}")
+            }
+            else -> options.arraysAsRelation
+        }
         val requiredStyle = when (options.requiredStyleOption?.lowercase()) {
             null, "plus" -> RequiredFieldStyle.PLUS
             "none" -> RequiredFieldStyle.NONE
             "suffix-q" -> RequiredFieldStyle.SUFFIX_Q
             else -> throw IllegalArgumentException("Invalid required style: ${options.requiredStyleOption}")
         }
+        // If not provided on CLI, allow config file to set requiredStyle
+        val requiredStyleFinal = if (options.requiredStyleOption == null && configString("requiredStyle") != null) {
+            when (configString("requiredStyle")!!.lowercase()) {
+                "plus" -> RequiredFieldStyle.PLUS
+                "none" -> RequiredFieldStyle.NONE
+                "suffix-q" -> RequiredFieldStyle.SUFFIX_Q
+                else -> throw IllegalArgumentException("Invalid requiredStyle in config: ${configString("requiredStyle")}")
+            }
+        } else requiredStyle
+
+        // enumStyle may also be provided by config file when not passed on CLI
+        val enumStyleFinal = if (options.enumStyleOption == null && configString("enumStyle") != null) {
+            when (configString("enumStyle")!!.lowercase()) {
+                "inline" -> EnumStyle.INLINE
+                "note" -> EnumStyle.NOTE
+                "class" -> EnumStyle.CLASS
+                else -> throw IllegalArgumentException("Invalid enumStyle in config: ${configString("enumStyle")}")
+            }
+        } else enumStyle
+
         return Preferences(
             arraysAsRelation = arraysPreference,
-            enumStyle = enumStyle,
+            enumStyle = enumStyleFinal,
             useEnglishSingularizer = options.useEnglishSingularizer,
             showInheritedFields = options.showInheritedFields,
-            requiredFieldStyle = requiredStyle
+            requiredFieldStyle = requiredStyleFinal
         )
     }
 }

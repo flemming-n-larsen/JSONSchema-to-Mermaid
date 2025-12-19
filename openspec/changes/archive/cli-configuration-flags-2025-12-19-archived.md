@@ -1,9 +1,14 @@
 # ARCHIVED: Open Spec: CLI Configuration Flags
 
-> This spec has been implemented and archived. A snapshot of the original document is stored at `openspec/changes/archive/cli-configuration-flags-2025-12-19-archived.md`.
->
-> Archived on: 2025-12-19
->
+Original path: `openspec/specs/cli-configuration-flags.md`
+Archived on: 2025-12-19
+Archived by: automated archive step
+
+Note: This spec has been implemented and archived. Keep the archived copy for historical reference.
+
+---
+
+<!-- Original spec content follows -->
 
 # Open Spec: CLI Configuration Flags
 
@@ -214,3 +219,8 @@ Appendix B: Example config file (project-level `js2m.json`)
   "requiredStyle": "suffix-q",
   "enumStyle": "class"
 }
+
+
+
+
+

@@ -409,6 +409,28 @@ classDiagram
     Parent <|-- Child
 ```
 
+### Configuration file
+
+You can provide rendering defaults via a JSON config file and pass it with `--config-file` or place it in your project directory as `js2m.json` or `.js2mrc`, or in your home directory as `~/.js2m.json`/`~/.js2mrc`.
+
+Supported keys (case-insensitive):
+
+- `arrays`: `relation` or `inline` — controls whether arrays are rendered as relationships (default) or inline fields.
+- `enumStyle`: `inline`, `note`, or `class` — controls enum rendering.
+- `requiredStyle`: `plus`, `none`, or `suffix-q` — controls how required/optional fields are marked.
+
+Example `js2m.json`:
+
+```json
+{
+  "arrays": "inline",
+  "enumStyle": "class",
+  "requiredStyle": "suffix-q"
+}
+```
+
+CLI flags always override configuration file settings. Use `--config-file PATH` to point to a specific config; otherwise the tool will look for `js2m.json` / `.js2mrc` in the source directory and then in your home directory.
+
 ### Tips for reading these examples
 
 - If two schemas or definitions would produce the same class name, the generator will append a numeric suffix (e.g.,

@@ -49,6 +49,10 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
         "--enum-style",
         help = "Enum rendering style: inline, note, or class (default: inline)"
     )
+    private val configFile: Path? by option(
+        "--config-file",
+        help = "Path to a JSON config file (e.g. js2m.json) providing default rendering options"
+    ).path(mustExist = true)
     private val arraysAsRelation: Boolean by option(
         "--arrays-as-relation",
         help = "Render arrays as relationships (default: true)"
@@ -94,6 +98,7 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
             outputPath = outputPath,
             noClassDiagramHeader = noClassDiagramHeader,
             enumStyleOption = enumStyleOption,
+            configFile = configFile,
             useEnglishSingularizer = useEnglishSingularizer,
             showInheritedFields = showInheritedFields,
             arraysAsRelation = arraysAsRelation,
