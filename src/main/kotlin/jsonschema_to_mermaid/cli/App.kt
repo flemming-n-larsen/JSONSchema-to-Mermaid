@@ -13,16 +13,11 @@ import java.util.Properties
 
 fun main(args: Array<String>) = App().main(args)
 
-private fun loadAppNameFromProperties(): String {
-    return try {
-        val props = Properties()
-        val stream = App::class.java.classLoader.getResourceAsStream("app.properties")
-        stream?.use { props.load(it) }
-        props.getProperty("appName") ?: "jsonschema-to-mermaid"
-    } catch (_: Exception) {
-        "jsonschema-to-mermaid"
-    }
-}
+private fun loadAppNameFromProperties(): String = runCatching {
+    Properties().apply {
+        App::class.java.classLoader.getResourceAsStream("app.properties")?.use { load(it) }
+    }.getProperty("appName")
+}.getOrNull() ?: "jsonschema-to-mermaid"
 
 class App : CliktCommand(name = loadAppNameFromProperties()) {
     private val sourceFileOption: String? by option(
@@ -75,16 +70,11 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
         versionOption(loadVersionFromProperties())
     }
 
-    private fun loadVersionFromProperties(): String {
-        return try {
-            val props = Properties()
-            val stream = this::class.java.classLoader.getResourceAsStream("version.properties")
-            stream?.use { props.load(it) }
-            props.getProperty("version") ?: "<unknown>"
-        } catch (_: Exception) {
-            "<unknown>"
-        }
-    }
+    private fun loadVersionFromProperties(): String = runCatching {
+        Properties().apply {
+            this@App::class.java.classLoader.getResourceAsStream("version.properties")?.use { load(it) }
+        }.getProperty("version")
+    }.getOrNull() ?: "<unknown>"
 
     override fun run() {
         val resolvedArraysOption: String? = arraysOption

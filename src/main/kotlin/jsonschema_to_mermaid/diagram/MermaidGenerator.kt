@@ -16,7 +16,5 @@ object MermaidGenerator {
         schemaFiles: Collection<SchemaFileInfo>,
         noClassDiagramHeader: Boolean = false,
         preferences: Preferences = Preferences()
-    ): String {
-        return MermaidDiagramBuilder.build(schemaFiles, noClassDiagramHeader, preferences)
-    }
+    ): String = MermaidDiagramBuilder.build(schemaFiles, noClassDiagramHeader, preferences)
 }

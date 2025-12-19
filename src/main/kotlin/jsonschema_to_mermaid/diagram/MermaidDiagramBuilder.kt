@@ -30,13 +30,12 @@ object MermaidDiagramBuilder {
             ctx.enumClasses
         )
     }
-    private fun createDiagramContext(preferences: Preferences): DiagramGenerationContext {
-        return DiagramGenerationContext(
+    private fun createDiagramContext(preferences: Preferences): DiagramGenerationContext =
+        DiagramGenerationContext(
             classProperties = linkedMapOf(),
             relations = mutableListOf(),
             preferences = preferences,
             enumNotes = mutableListOf(),
             enumClasses = mutableListOf()
         )
-    }
 }

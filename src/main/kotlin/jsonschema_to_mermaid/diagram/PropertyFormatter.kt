@@ -9,20 +9,19 @@ import jsonschema_to_mermaid.jsonschema.Property
  */
 object PropertyFormatter {
 
-    fun formatEnumInlineField(propertyName: String, property: Property, isRequired: Boolean, preferences: Preferences): String {
-        val enumVals = property.enum?.joinToString("|") ?: ""
-        val typeStr = "{$enumVals}"
-        return formatFieldWithMultiplicity(typeStr, propertyName, isRequired, preferences)
-    }
+    fun formatEnumInlineField(propertyName: String, property: Property, isRequired: Boolean, preferences: Preferences): String =
+        formatFieldWithMultiplicity("{${property.enum?.joinToString("|") ?: ""}}", propertyName, isRequired, preferences)
 
-    fun formatInlineField(propertyName: String, refType: String, isRequired: Boolean, preferences: Preferences): String {
-        return formatFieldWithMultiplicity(refType, propertyName, isRequired, preferences)
-    }
+    fun formatInlineField(propertyName: String, refType: String, isRequired: Boolean, preferences: Preferences): String =
+        formatFieldWithMultiplicity(refType, propertyName, isRequired, preferences)
 
     fun formatArrayField(propertyName: String, items: Property?, isRequired: Boolean, preferences: Preferences): String {
         val itemType = items?.type ?: items?.format
         val mapped = primitiveTypeName(itemType)
-        val singularName = if (preferences.useEnglishSingularizer) EnglishSingularizer.toSingular(propertyName) else propertyName.replaceFirstChar { it.uppercaseChar() }
+        val singularName = if (preferences.useEnglishSingularizer)
+            EnglishSingularizer.toSingular(propertyName)
+        else
+            propertyName.replaceFirstChar { it.uppercaseChar() }
         return formatFieldWithMultiplicity("$mapped[]", singularName, isRequired, preferences)
     }
 
@@ -42,29 +41,21 @@ object PropertyFormatter {
         return formatFieldWithMultiplicity("Map~String, $mapped~", propertyName, isRequired, preferences)
     }
 
-    private fun extractAdditionalPropertiesType(additionalProperties: Any?): String {
-        return if (additionalProperties is Map<*, *>) {
-            val type = additionalProperties["type"] as? String
-            primitiveTypeName(type)
-        } else {
-            "Object"
-        }
-    }
+    private fun extractAdditionalPropertiesType(additionalProperties: Any?): String =
+        (additionalProperties as? Map<*, *>)
+            ?.get("type")
+            ?.let { primitiveTypeName(it as? String) }
+            ?: "Object"
 
     private fun formatPatternPropertiesField(propertyName: String, property: Property, isRequired: Boolean, preferences: Preferences): String {
         val mapped = extractPatternPropertiesType(property.patternProperties)
         return formatFieldWithMultiplicity("Map~String, $mapped~", propertyName, isRequired, preferences)
     }
 
-    private fun extractPatternPropertiesType(patternProperties: Map<String, Property>?): String {
-        val firstPattern = patternProperties?.entries?.firstOrNull()
-        return if (firstPattern != null) {
-            val patternProp = firstPattern.value
+    private fun extractPatternPropertiesType(patternProperties: Map<String, Property>?): String =
+        patternProperties?.entries?.firstOrNull()?.value?.let { patternProp ->
             primitiveTypeName(patternProp.type ?: patternProp.format)
-        } else {
-            "Object"
-        }
-    }
+        } ?: "Object"
 
     private fun formatArrayPropertyField(propertyName: String, property: Property, isRequired: Boolean, preferences: Preferences): String {
         val itemType = property.items?.type ?: property.items?.format
@@ -91,10 +82,8 @@ object PropertyFormatter {
         }
         return when {
             isRequired && preferences.requiredFieldStyle == RequiredFieldStyle.PLUS -> "+$type $adjustedName"
-            isRequired && preferences.requiredFieldStyle == RequiredFieldStyle.NONE -> "$type $adjustedName"
-            isRequired && preferences.requiredFieldStyle == RequiredFieldStyle.SUFFIX_Q -> "$type $adjustedName"
-            preferences.requiredFieldStyle == RequiredFieldStyle.NONE -> "$type $adjustedName"
-            preferences.requiredFieldStyle == RequiredFieldStyle.SUFFIX_Q -> "$type $adjustedName"
+            isRequired -> "$type $adjustedName"
+            preferences.requiredFieldStyle in setOf(RequiredFieldStyle.NONE, RequiredFieldStyle.SUFFIX_Q) -> "$type $adjustedName"
             else -> "$type $adjustedName [0..1]"
         }
     }

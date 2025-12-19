@@ -19,32 +19,37 @@ object EnglishSingularizer {
 
     fun toSingular(word: String): String {
         val lower = word.lowercase()
+
+        // Check irregulars first
         irregulars[lower]?.let { return it }
-        // -ies → y (companies → Company)
-        if (lower.endsWith("ies") && lower.length > 3) {
-            return capitalize(word.dropLast(3) + "y")
+
+        return when {
+            // -ies → y (companies → Company)
+            lower.endsWith("ies") && lower.length > 3 ->
+                capitalize(word.dropLast(3) + "y")
+
+            // -es endings for x, z, ch, sh
+            lower.endsWith("es") && lower.length > 2 ->
+                word.dropLast(2).let { stem ->
+                    when {
+                        endsWithAny(stem, "x", "z", "ch", "sh") -> capitalize(stem)
+                        stem.endsWith("s") && !stem.endsWith("ss") -> capitalize(stem)
+                        else -> capitalize(stem)
+                    }
+                }
+
+            // -s (cats → Cat)
+            lower.endsWith("s") && lower.length > 1 && !lower.endsWith("ss") ->
+                capitalize(word.dropLast(1))
+
+            // Default: Capitalize
+            else -> capitalize(word)
         }
-        // -es endings
-        if (lower.endsWith("es") && lower.length > 2) {
-            val stem = word.dropLast(2)
-            if (stem.endsWith("x") || stem.endsWith("z") || stem.endsWith("ch") || stem.endsWith("sh")) {
-                return capitalize(stem)
-            }
-            if (stem.endsWith("s") && !stem.endsWith("ss")) {
-                return capitalize(stem)
-            }
-            // For other cases like "dresses", drop only 'es'
-            if (lower.endsWith("es")) {
-                return capitalize(word.dropLast(2))
-            }
-        }
-        // -s (cats → Cat)
-        if (lower.endsWith("s") && lower.length > 1 && !lower.endsWith("ss")) {
-            return capitalize(word.dropLast(1))
-        }
-        // Default: Capitalize
-        return capitalize(word)
     }
 
-    private fun capitalize(str: String): String = str.replaceFirstChar { it.uppercaseChar() }
+    private fun capitalize(str: String): String =
+        str.replaceFirstChar { it.uppercaseChar() }
+
+    private fun endsWithAny(str: String, vararg suffixes: String): Boolean =
+        suffixes.any { str.endsWith(it) }
 }

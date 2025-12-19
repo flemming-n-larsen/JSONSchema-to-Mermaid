@@ -38,16 +38,13 @@ class ConfigFileResolver {
      * @return Parsed JsonObject (empty object if file is empty)
      * @throws ConfigParseException if the file contains invalid JSON
      */
-    fun parseConfig(configPath: Path): JsonObject {
-        return try {
-            val content = String(Files.readAllBytes(configPath))
-            if (content.isBlank()) {
-                return JsonObject()
-            }
-            Gson().fromJson(content, JsonObject::class.java) ?: JsonObject()
-        } catch (e: JsonSyntaxException) {
-            throw ConfigParseException("Invalid JSON in config file: ${e.message}", e)
-        }
+    fun parseConfig(configPath: Path): JsonObject = try {
+        String(Files.readAllBytes(configPath))
+            .takeIf { it.isNotBlank() }
+            ?.let { Gson().fromJson(it, JsonObject::class.java) }
+            ?: JsonObject()
+    } catch (e: JsonSyntaxException) {
+        throw ConfigParseException("Invalid JSON in config file: ${e.message}", e)
     }
 
     /**
@@ -57,21 +54,11 @@ class ConfigFileResolver {
     fun getString(config: JsonObject?, key: String): String? {
         if (config == null) return null
 
-        // Try exact match first
-        val exactMatch = config.get(key)
-        if (exactMatch != null) {
-            return exactMatch.asString
-        }
-
-        // Try case-insensitive match
-        val lowerKey = key.lowercase()
-        for (entry in config.entrySet()) {
-            if (entry.key.lowercase() == lowerKey) {
-                return entry.value.asString
-            }
-        }
-
-        return null
+        // Try exact match first, then case-insensitive match
+        return config.get(key)?.asString
+            ?: config.entrySet()
+                .firstOrNull { it.key.equals(key, ignoreCase = true) }
+                ?.value?.asString
     }
 
     private fun findConfigInParentDirs(startDir: Path): Path? {
@@ -88,19 +75,17 @@ class ConfigFileResolver {
         return null
     }
 
-    private fun findUserLevelConfig(): Path? {
-        val homeDirectory = System.getProperty("user.home") ?: return null
-        val homePath = Paths.get(homeDirectory)
+    private fun findUserLevelConfig(): Path? =
+        System.getProperty("user.home")
+            ?.let { Paths.get(it) }
+            ?.let { homePath ->
+                USER_CONFIG_NAMES
+                    .map { homePath.resolve(it) }
+                    .firstOrNull { isValidConfigFile(it) }
+            }
 
-        return USER_CONFIG_NAMES
-            .map { homePath.resolve(it) }
-            .firstOrNull { isValidConfigFile(it) }
-    }
-
-    private fun isValidConfigFile(path: Path): Boolean {
-        val file = path.toFile()
-        return file.exists() && file.isFile
-    }
+    private fun isValidConfigFile(path: Path): Boolean =
+        path.toFile().let { it.exists() && it.isFile }
 
     companion object {
         private val PROJECT_CONFIG_NAMES = listOf("js2m.json", ".js2mrc")

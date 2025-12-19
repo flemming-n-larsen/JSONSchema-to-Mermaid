@@ -12,13 +12,15 @@ object RelationshipBuilder {
         toMultiplicity: String? = null,
         label: String,
         arrow: String = "-->"
-    ): String {
-        val fromPart = if (fromMultiplicity != null) "\"$fromMultiplicity\" " else ""
-        val toPart = if (toMultiplicity != null) " \"$toMultiplicity\"" else ""
-        return "$fromClassName $fromPart$arrow$toPart $toClassName : $label"
+    ): String = buildString {
+        append(fromClassName)
+        append(" ")
+        fromMultiplicity?.let { append("\"$it\" ") }
+        append(arrow)
+        toMultiplicity?.let { append(" \"$it\"") }
+        append(" $toClassName : $label")
     }
 
-    fun formatInheritanceRelation(parentClassName: String, childClassName: String): String {
-        return "$parentClassName <|-- $childClassName"
-    }
+    fun formatInheritanceRelation(parentClassName: String, childClassName: String): String =
+        "$parentClassName <|-- $childClassName"
 }

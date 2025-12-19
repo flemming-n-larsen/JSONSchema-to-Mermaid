@@ -26,10 +26,20 @@ This section documents the current, observed conventions and recommended best-pr
 
 ### Code Style
 - Codebase is Kotlin-first and follows typical Kotlin idioms (packages under `jsonschema_to_mermaid`).
-- No automated formatter (e.g. ktlint/spotless) is enforced in the repository; prefer IntelliJ Kotlin style and idiomatic Kotlin conventions:
-  - Use expressive names, PascalCase for types, camelCase for values/functions
-  - Keep short functions where sensible, prefer immutability and data classes for simple DTOs
-  - Use meaningful package structure: `cli`, `schema`, `diagram`, `relationship`, `schema_files`, etc.
+- **Modern Kotlin Style Required**: All Kotlin code MUST follow modern, functional, idiomatic Kotlin 2.x style as defined in `openspec/specs/kotlin-modern-style.md`. Key principles:
+  - **Prefer functional transformations** over imperative loops (`filter`, `map`, `fold` instead of `for` loops)
+  - **Use expression bodies** for short functions
+  - **Use `when` as an expression** instead of if-else chains
+  - **Use scope functions** (`let`, `run`, `apply`, `also`, `with`) for cleaner null handling and initialization
+  - **Prefer immutability** (`val` over `var`, immutable collections)
+  - **Use `buildList`, `buildString`, `buildMap`** for collection/string construction
+  - **Use destructuring declarations** for pairs and data classes
+  - **Use `takeIf`/`takeUnless`** for conditional returns
+  - **Use `require`/`check`/`error`** for preconditions
+  - **Avoid `!!` (non-null assertion)** — use safe calls or proper null handling
+- Use expressive names, PascalCase for types, camelCase for values/functions
+- Keep short functions where sensible, prefer immutability and data classes for simple DTOs
+- Use meaningful package structure: `cli`, `schema`, `diagram`, `relationship`, `schema_files`, etc.
 - Recommendation: Add a formatter (ktlint or spotless) to enforce consistent style in CI if desired.
 
 ### Architecture Patterns
