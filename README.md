@@ -28,9 +28,8 @@ jsonschema-to-mermaid [OPTIONS] [<source>] [<output>]
 - `-s, --source FILE`        Input schema file (relative to directory or CWD)
 - `-d, --source-dir DIR`     Directory with schema files (default: current directory)
 - `-o, --output FILE`        Output file
+- `-a, --arrays STYLE`       Array rendering style: `relation` (default) or `inline`
 - `--enum-style STYLE`       Enum rendering style: `inline` (default), `note`, or `class`
-- `--arrays-as-relation`     Render arrays as relationships (default). Pair with `--arrays-inline` to force inline fields.
-- `--arrays-inline`          Inline array properties (suppresses relationship arrows for arrays)
 - `--required-style STYLE`   Required marker style: `plus` (default), `none`, or `suffix-q` (`suffix-q` appends `?` to optional names)
 - `--english-singularizer`   Use English singularization for array item names (default: true). Disable for non-English
   diagrams.
@@ -480,6 +479,37 @@ You can control how enum values appear using the `--enum-style` flag:
    <<enumeration>> StatusEnum
    ```
    CLI: `jsonschema-to-mermaid schema.json --enum-style class`
+
+## Array Rendering Styles
+
+You can control how arrays are rendered using the `--arrays` (or `-a`) flag:
+
+1. Relation (default): Arrays render as relationships with multiplicity arrows.
+   ```mermaid
+   classDiagram
+   class Order {
+     +String orderId
+   }
+   class OrderItem {
+     +String productId
+   }
+   Order "1" --> "*" OrderItem: items
+   ```
+   CLI: `jsonschema-to-mermaid schema.json --arrays relation`
+   CLI: `jsonschema-to-mermaid schema.json -a relation`
+
+2. Inline: Arrays render as inline array fields without relationship arrows.
+   ```mermaid
+   classDiagram
+   class Order {
+     +String orderId
+     Object[] items
+   }
+   ```
+   CLI: `jsonschema-to-mermaid schema.json --arrays inline`
+   CLI: `jsonschema-to-mermaid schema.json -a inline`
+
+The default behavior (if `--arrays` is not specified) is `relation`. You can also configure this in a config file using the `arrays` key.
 
 ## External $ref Support
 

@@ -61,9 +61,9 @@ class AppEnumStyleCliTest : FunSpec({
         defaultOutput.shouldNotContain("String parentField [0..1]")
     }
 
-    test("CLI --arrays-inline renders arrays as inline fields") {
+    test("CLI --arrays inline renders arrays as inline fields") {
         val schemaPath = resourcePath("/readme_examples/order.schema.json").toString()
-        val output = runCli(schemaPath, "--arrays-inline")
+        val output = runCli(schemaPath, "--arrays", "inline")
         output.shouldContain("Object[] Item")
         output.shouldNotContain("Order \"1\" --> \"*\" OrderItem : items")
     }

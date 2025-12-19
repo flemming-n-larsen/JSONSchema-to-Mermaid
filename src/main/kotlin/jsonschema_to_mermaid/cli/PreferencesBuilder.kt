@@ -35,26 +35,27 @@ class PreferencesBuilder(
     }
 
     private fun resolveArraysAsRelation(config: JsonObject?): Boolean {
-        // CLI --arrays-inline takes highest precedence
-        if (options.arraysInline) {
-            return false
+        // CLI --arrays option takes highest precedence
+        val cliValue = options.arraysOption
+        if (cliValue != null) {
+            return parseArraysValue(cliValue, "CLI option")
         }
 
         // Check config file
         val configValue = configFileResolver.getString(config, "arrays")
         if (configValue != null) {
-            return parseArraysConfig(configValue)
+            return parseArraysValue(configValue, "config file")
         }
 
-        // Fall back to CLI option
-        return options.arraysAsRelation
+        // Default: arrays as relation
+        return true
     }
 
-    private fun parseArraysConfig(value: String): Boolean {
+    private fun parseArraysValue(value: String, source: String): Boolean {
         return when (value.lowercase()) {
             "inline" -> false
             "relation" -> true
-            else -> throw InvalidOptionException("Invalid arrays value in config: $value")
+            else -> throw InvalidOptionException("Invalid arrays value in $source: $value")
         }
     }
 
@@ -113,4 +114,3 @@ class PreferencesBuilder(
  * Exception thrown when an invalid option value is encountered.
  */
 class InvalidOptionException(message: String) : IllegalArgumentException(message)
-

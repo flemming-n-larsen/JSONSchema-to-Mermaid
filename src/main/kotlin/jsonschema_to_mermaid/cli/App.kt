@@ -53,14 +53,11 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
         "--config-file",
         help = "Path to a JSON config file (e.g. js2m.json) providing default rendering options"
     ).path(mustExist = true)
-    private val arraysAsRelation: Boolean by option(
-        "--arrays-as-relation",
-        help = "Render arrays as relationships (default: true)"
-    ).flag(default = true)
-    private val arraysInline: Boolean by option(
-        "--arrays-inline",
-        help = "Render arrays as inline fields (overrides --arrays-as-relation)"
-    ).flag(default = false)
+    private val arraysOption: String? by option(
+        "-a",
+        "--arrays",
+        help = "How to render arrays: relation or inline"
+    )
     private val requiredStyleOption: String? by option(
         "--required-style",
         help = "Required field marker style: plus (default), none, or suffix-q"
@@ -90,6 +87,8 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
     }
 
     override fun run() {
+        val resolvedArraysOption: String? = arraysOption
+
         val options = CliOptions(
             sourceFileOption = sourceFileOption,
             sourceDirOption = sourceDirOption,
@@ -101,8 +100,7 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
             configFile = configFile,
             useEnglishSingularizer = useEnglishSingularizer,
             showInheritedFields = showInheritedFields,
-            arraysAsRelation = arraysAsRelation,
-            arraysInline = arraysInline,
+            arraysOption = resolvedArraysOption,
             requiredStyleOption = requiredStyleOption
         )
         val cliService = CliService(

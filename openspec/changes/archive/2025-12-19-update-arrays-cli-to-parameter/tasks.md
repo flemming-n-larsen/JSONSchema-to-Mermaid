@@ -18,13 +18,13 @@
 ### 3) QA and docs
 
 - [X] Update README and any documentation examples.
-- [X] Update `openspec/specs/cli-configuration-flags.md` (N/A - original spec already archived).
+- [X] Update `openspec/specs/cli-configuration-flags.md` (if desired), archive previous spec if necessary.
 
 ### 4) Archive
 
-- [X] Move change folder to `openspec/changes/archive/2025-12-19-update-arrays-cli-to-parameter/`
+- [X] Once merged and released, move change folder to
+  `openspec/changes/archive/YYYY-MM-DD-update-arrays-cli-to-parameter/` and update archived spec snapshot.
   **Archived on:** 2025-12-19
-  **Archive location:** `openspec/changes/archive/2025-12-19-update-arrays-cli-to-parameter/`
 
 Notes:
 

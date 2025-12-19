@@ -1,7 +1,6 @@
 package jsonschema_to_mermaid.cli
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import test_util.resourcePath
@@ -57,7 +56,7 @@ class ConfigFileCliTest : FunSpec({
             val outSb = StringBuilder()
             val errSb = StringBuilder()
             val echo: (String, Boolean) -> Unit = { msg, isErr -> if (isErr) errSb.append(msg).append('\n') else outSb.append(msg).append('\n') }
-            val options = CliOptions(sourceDirOption = tmpDir, arraysInline = true)
+            val options = CliOptions(sourceDirOption = tmpDir, arraysOption = "inline")
             val svc = CliService(options, echo)
             val originalOut = System.out
             val originalErr = System.err

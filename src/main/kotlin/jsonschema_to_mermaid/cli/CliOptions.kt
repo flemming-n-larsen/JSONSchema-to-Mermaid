@@ -19,8 +19,7 @@ data class CliOptions(
     val configFile: Path? = null,
     val useEnglishSingularizer: Boolean = true,
     val showInheritedFields: Boolean = false,
-    val arraysAsRelation: Boolean = true,
-    val arraysInline: Boolean = false,
+    val arraysOption: String? = null,
     val requiredStyleOption: String? = null
 ) {
     /**
