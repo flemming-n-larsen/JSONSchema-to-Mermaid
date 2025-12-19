@@ -12,11 +12,8 @@ object TypeNameConverter {
         "boolean" -> "Boolean"
         "string" -> "String"
         null -> "Object"
-        else -> capitalizeFirst(typeOrFormat)
+        else -> typeOrFormat.replaceFirstChar { it.uppercaseChar() }
     }
-
-    private fun capitalizeFirst(value: String): String =
-        value.replaceFirstChar { it.uppercaseChar().toString() }
 }
 
 /**
@@ -26,16 +23,11 @@ object TypeNameConverter {
 object NameSanitizer {
     private val NON_ALPHANUMERIC_REGEX = Regex("[^A-Za-z0-9]+")
 
-    fun sanitizeName(name: String?): String {
-        if (name == null) return ""
-
-        return name.split(NON_ALPHANUMERIC_REGEX)
-            .filter { it.isNotBlank() }
-            .joinToString("") { capitalizeFirst(it) }
-    }
-
-    private fun capitalizeFirst(word: String): String =
-        word.replaceFirstChar { c -> c.uppercaseChar() }
+    fun sanitizeName(name: String?): String = name
+        ?.split(NON_ALPHANUMERIC_REGEX)
+        ?.filter { it.isNotBlank() }
+        ?.joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
+        ?: ""
 }
 
 /**
@@ -58,31 +50,32 @@ object ClassNameResolver {
 
     fun refToClassName(ref: String?): String {
         if (ref == null) return "UnknownRef"
-        val lastPart = extractLastRefPart(ref)
-        val baseName = NameSanitizer.sanitizeName(lastPart)
+        val baseName = NameSanitizer.sanitizeName(extractLastRefPart(ref))
         return registerAndDisambiguate(baseName, ref)
     }
 
     private fun registerAndDisambiguate(baseName: String, sourceId: String): String {
         val sources = nameRegistry.getOrPut(baseName) { mutableListOf() }
-        if (sources.contains(sourceId)) {
-            // Already registered for this source
-            return baseName
-        }
+
+        // Already registered for this source
+        if (sources.contains(sourceId)) return baseName
+
+        // Collision detected
         if (sources.isNotEmpty()) {
-            // Collision detected
             val disambiguated = "${baseName}_${sources.size + 1}"
             System.err.println("[WARN] Name collision: '$baseName' used by ${sources.joinToString()} and '$sourceId'. Disambiguated to '$disambiguated'.")
             sources.add(sourceId)
             nameRegistry[disambiguated] = mutableListOf(sourceId)
             return disambiguated
         }
+
         sources.add(sourceId)
         return baseName
     }
 
-    private fun extractLastRefPart(ref: String): String {
-        val parts = ref.split('/', '#').filter { it.isNotBlank() }
-        return parts.lastOrNull() ?: ref
-    }
+    private fun extractLastRefPart(ref: String): String =
+        ref.split('/', '#')
+            .filter { it.isNotBlank() }
+            .lastOrNull()
+            ?: ref
 }

@@ -54,23 +54,15 @@ class DiagnosticLogger(
     /**
      * Logs an error message.
      */
-    fun logError(message: String) {
-        echo(message, true)
-    }
+    fun logError(message: String) = echo(message, true)
 
     /**
      * Logs an error with styled output.
      */
-    fun logStyledError(message: String) {
+    fun logStyledError(message: String) =
         echo("Failed to generate Mermaid: \u001B[31m$message\u001B[0m", true)
-    }
 
-    private fun formatAbsolutePath(path: Path): String {
-        return try {
-            path.toAbsolutePath().toString()
-        } catch (_: Exception) {
-            "<invalid>"
-        }
-    }
+    private fun formatAbsolutePath(path: Path): String =
+        runCatching { path.toAbsolutePath().toString() }.getOrDefault("<invalid>")
 }
 

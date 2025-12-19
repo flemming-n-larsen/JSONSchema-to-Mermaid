@@ -31,8 +31,7 @@ object SchemaFilesReader {
      */
     fun readSchemas(sourcePaths: Set<Path>): List<SchemaFileInfo> =
         collectAllFiles(sourcePaths).map { filepath ->
-            val schema = readSchema(filepath)
-            SchemaFileInfo(filepath.name, schema)
+            SchemaFileInfo(filepath.name, readSchema(filepath))
         }
 
     /**
@@ -48,7 +47,7 @@ object SchemaFilesReader {
         }.toSet()
 
     private fun isSchemaFile(file: Path): Boolean =
-        setOf("json", "yaml", "yml").contains(getFileExtension(file))
+        getFileExtension(file) in setOf("json", "yaml", "yml")
 
     /**
      * Reads a schema from the given path, handling inheritance and required fields.
@@ -151,39 +150,33 @@ object SchemaFilesReader {
     }
 }
 
-private fun formatCycleMessage(visiting: Set<Path>, current: Path): String {
-    val chain = buildList<Path> {
+private fun formatCycleMessage(visiting: Set<Path>, current: Path): String =
+    buildList {
         addAll(visiting)
         add(current)
     }.joinToString(" -> ") { it.toAbsolutePath().toString() }
-    return "Inheritance cycle detected while resolving extends. Chain: $chain"
-}
+        .let { "Inheritance cycle detected while resolving extends. Chain: $it" }
 
-private fun getFileExtension(path: Path): String {
-    val fileName = path.fileName.toString()
-    val lastDot = fileName.lastIndexOf('.')
-    return if (lastDot > 0) fileName.substring(lastDot + 1).lowercase() else ""
-}
+private fun getFileExtension(path: Path): String =
+    path.fileName.toString()
+        .substringAfterLast('.', "")
+        .lowercase()
 
 /**
  * Utility object for merging schema maps and lists.
  */
 object SchemaMergeUtils {
-    fun <K, V> mergeMaps(base: Map<K, V>?, override: Map<K, V>?): Map<K, V>? =
-        when {
-            base == null && override == null -> null
-            base == null -> override
-            override == null -> base
-            else -> base + override
-        }
+    fun <K, V> mergeMaps(base: Map<K, V>?, override: Map<K, V>?): Map<K, V>? = when {
+        base == null -> override
+        override == null -> base
+        else -> base + override
+    }
 
-    fun <T> mergeLists(base: List<T>?, override: List<T>?): List<T>? =
-        when {
-            base == null && override == null -> null
-            base == null -> override
-            override == null -> base
-            else -> (base + override).distinct()
-        }
+    fun <T> mergeLists(base: List<T>?, override: List<T>?): List<T>? = when {
+        base == null -> override
+        override == null -> base
+        else -> (base + override).distinct()
+    }
 }
 
 /**
@@ -214,7 +207,7 @@ object PropertyRequiredFixer {
     }
 
     private fun extractRequiredList(map: Map<*, *>): List<String> =
-        (map["required"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+        (map["required"] as? List<*>)?.filterIsInstance<String>().orEmpty()
 
     private fun fixProperties(property: jsonschema_to_mermaid.jsonschema.Property, map: Map<*, *>): Map<String, jsonschema_to_mermaid.jsonschema.Property>? =
         property.properties?.mapValues { (k, v) ->

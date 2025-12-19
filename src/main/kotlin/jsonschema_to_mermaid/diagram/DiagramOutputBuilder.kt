@@ -12,28 +12,22 @@ object DiagramOutputBuilder {
         preferences: Preferences,
         enumNotes: List<Pair<String, String>>,
         enumClasses: List<Pair<String, List<String>>>
-    ): String {
-        return StringBuilder().apply {
-            appendHeader(noClassDiagramHeader)
-            appendClasses(classProperties)
-            appendEnums(preferences, enumNotes, enumClasses)
-            appendRelations(relations)
-        }.toString().trimEnd() + "\n"
-    }
+    ): String = buildString {
+        appendHeader(noClassDiagramHeader)
+        appendClasses(classProperties)
+        appendEnums(preferences, enumNotes, enumClasses)
+        appendRelations(relations)
+    }.trimEnd() + "\n"
 
     private fun StringBuilder.appendHeader(noClassDiagramHeader: Boolean) {
-        if (!noClassDiagramHeader) {
-            append("classDiagram\n")
-        }
+        if (!noClassDiagramHeader) appendLine("classDiagram")
     }
 
     private fun StringBuilder.appendClasses(classProperties: Map<String, List<String>>) {
         classProperties.forEach { (className, properties) ->
-            append("  class $className {\n")
-            properties.forEach { property ->
-                append("    $property\n")
-            }
-            append("  }\n")
+            appendLine("  class $className {")
+            properties.forEach { property -> appendLine("    $property") }
+            appendLine("  }")
         }
     }
 
@@ -45,32 +39,29 @@ object DiagramOutputBuilder {
         when (preferences.enumStyle) {
             EnumStyle.NOTE -> appendEnumNotes(enumNotes)
             EnumStyle.CLASS -> appendEnumClasses(enumClasses)
-            EnumStyle.INLINE -> {} // No additional output needed
+            EnumStyle.INLINE -> Unit // No additional output needed
         }
     }
 
     private fun StringBuilder.appendEnumNotes(enumNotes: List<Pair<String, String>>) {
         enumNotes.forEach { (className, note) ->
-            append("  note for $className \"$note\"\n")
+            appendLine("  note for $className \"$note\"")
         }
     }
 
     private fun StringBuilder.appendEnumClasses(enumClasses: List<Pair<String, List<String>>>) {
         enumClasses.forEach { (enumName, values) ->
-            append("  class $enumName {\n")
-            values.forEach { value ->
-                append("    $value\n")
-            }
-            append("  }\n  <<enumeration>> $enumName\n")
+            appendLine("  class $enumName {")
+            values.forEach { value -> appendLine("    $value") }
+            appendLine("  }")
+            appendLine("  <<enumeration>> $enumName")
         }
     }
 
     private fun StringBuilder.appendRelations(relations: List<String>) {
         if (relations.isNotEmpty()) {
-            append('\n')
-            relations.forEach { relation ->
-                append("  $relation\n")
-            }
+            appendLine()
+            relations.forEach { relation -> appendLine("  $relation") }
         }
     }
 }
