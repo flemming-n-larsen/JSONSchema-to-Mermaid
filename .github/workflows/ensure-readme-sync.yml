@@ -1,0 +1,141 @@
+name: Ensure README updated for user-facing changes
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-readme:
+    name: Check README sync
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup git
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: Fetch main
+        run: |
+          # Ensure we have origin/main to compare against
+          git fetch origin main:refs/remotes/origin/main || true
+
+      - name: Determine changed files
+        id: changed
+        run: |
+          set -euo pipefail
+          echo "GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME"
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            BASE_REF=${{ github.event.pull_request.base.ref }}
+            HEAD_REF=${{ github.event.pull_request.head.ref }}
+            echo "PR base: $BASE_REF head: $HEAD_REF"
+            git fetch origin $BASE_REF:refs/remotes/origin/$BASE_REF || true
+            RANGE="origin/$BASE_REF...HEAD"
+          else
+            # For push events, compare against origin/main
+            RANGE="origin/main...HEAD"
+          fi
+
+          echo "Using range: $RANGE"
+          CHANGED=$(git diff --name-only $RANGE || true)
+          echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Set PR number env
+        run: |
+          # If this is a PR event, this sets PR_NUMBER, otherwise it will be empty
+          echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+
+      - name: Warn (don't fail) if README not updated for user-facing changes
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(printf "%s\n" "${{ steps.changed.outputs.changed_files }}" | sed '/^$/d')
+
+          echo "Files changed:" >&2
+          for f in "${files[@]}"; do
+            echo " - $f" >&2
+          done
+
+          # Define user-facing file patterns
+          user_patterns=(
+            "src/"
+            "examples/"
+            "scripts/"
+            "build.gradle.kts"
+            "gradle.properties"
+            "src/main/kotlin/jsonschema_to_mermaid/cli/"
+            ".github/"
+            "CHANGELOG.md"
+          )
+
+          readme_changed=false
+          user_changed=false
+
+          for f in "${files[@]}"; do
+            if [ "$f" = "README.md" ]; then
+              readme_changed=true
+            fi
+            if [ "$f" = "CHANGELOG.md" ]; then
+              # Treat changelog edits as documentation updates
+              readme_changed=true
+            fi
+            for p in "${user_patterns[@]}"; do
+              if [[ "$f" == $p* ]]; then
+                if [ "$f" != "README.md" ]; then
+                  user_changed=true
+                fi
+              fi
+            done
+          done
+
+          LABEL_NAME="documentation-needed"
+          LABEL_COLOR="f29513"
+
+          if [ "$user_changed" = true ] && [ "$readme_changed" = false ]; then
+            MSG="User-facing files were changed but README.md/CHANGELOG.md was not updated. Please update README.md and/or CHANGELOG.md to reflect user-visible changes or explain why it's not necessary.\n\nChanged files:\n"
+            for f in "${files[@]}"; do
+              MSG+=" - $f\n"
+            done
+
+            if [ -n "${PR_NUMBER:-}" ]; then
+              echo "Posting comment to PR #$PR_NUMBER"
+              # Build JSON body using jq to avoid shell quoting issues
+              body=$(jq -nc --arg msg "$MSG" '{body: $msg}')
+              curl -sS -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$body" "https://api.github.com/repos/$REPO/issues/$PR_NUMBER/comments" >/dev/null
+              echo "Comment posted to PR #$PR_NUMBER"
+
+              # Ensure the label exists (create if missing). Ignore errors if it already exists.
+              create_label_payload=$(jq -nc --arg name "$LABEL_NAME" --arg color "$LABEL_COLOR" --arg desc "Documentation update required (README/CHANGELOG)" '{name:$name,color:$color,description:$desc}')
+              curl -sS -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$create_label_payload" "https://api.github.com/repos/$REPO/labels" >/dev/null || true
+
+              # Add the label to the PR (issue)
+              add_label_payload=$(jq -nc --arg label "$LABEL_NAME" '[ $label ]')
+              curl -sS -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$add_label_payload" "https://api.github.com/repos/$REPO/issues/$PR_NUMBER/labels" >/dev/null || true
+
+              echo "Label '$LABEL_NAME' added to PR #$PR_NUMBER (or already present)."
+            else
+              echo "WARNING: $MSG" >&2
+            fi
+
+            echo "Warning emitted (action will not fail)."
+          else
+            # If README/CHANGELOG was updated, remove the documentation-needed label if present
+            if [ "$readme_changed" = true ] && [ -n "${PR_NUMBER:-}" ]; then
+              echo "README/CHANGELOG updated; removing label if present from PR #$PR_NUMBER"
+              curl -sS -X DELETE -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/issues/$PR_NUMBER/labels/$LABEL_NAME" >/dev/null || true
+              echo "Label removal attempted (no-op if label not present)."
+            fi
+
+            echo "README check passed (either no user-facing changes, or README/CHANGELOG was updated)."
+          fi

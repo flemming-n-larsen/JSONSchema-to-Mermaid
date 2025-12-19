@@ -72,7 +72,13 @@ Code Review Checklist (minimum)
 - Security: Any user input or file handling concerns accounted for?
 - Formatting/linting: Is the code formatted and passing static analysis checks?
 
-Examples & Conventions
+### Documentation & README
+- Keep `README.md` up to date: For every change that introduces new features, CLI flags, configuration options, behaviour changes, or example/output format changes, update `README.md` with a concise description and usage examples showing the new/changed behavior.
+- PR requirement: Any pull request that changes user-facing behaviour must include README updates (or a short explanation in the PR why documentation changes are not required). Reviewers should verify README changes as part of the Code Review Checklist.
+- Release notes & changelog: Update release notes and the changelog for user-facing changes and reference the relevant README sections or examples.
+- Golden examples and tests: If a change affects generated output (diagrams, examples, or formatting), update the golden files and README examples to match; add or update tests where appropriate.
+
+### Examples & Conventions
 - Use `data class` for DTOs and immutable value containers.
 - Use `sealed` classes for closed hierarchies and exhaustive when expressions.
 - Mark module-internal types/functions `internal` when they shouldn't be part of the public API.
