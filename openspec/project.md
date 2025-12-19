@@ -35,7 +35,15 @@ This section documents the current, observed conventions and recommended best-pr
 ### Architecture Patterns
 - CLI logic is thin and delegates to a service layer. For example:
   - `jsonschema_to_mermaid.cli.App` handles parsing CLI args (Clikt) and builds a `CliOptions` object.
-  - `CliService` contains application flow (resolve sources, read schemas, generate diagrams, write output).
+  - `CliService` orchestrates the application workflow by coordinating specialized components.
+- The CLI package follows Single Responsibility Principle with focused classes:
+  - `CliOptions` — Immutable data class encapsulating all CLI options.
+  - `SourceResolver` — Resolves source files and directories from CLI options.
+  - `ConfigFileResolver` — Discovers and parses configuration files (js2m.json, .js2mrc).
+  - `PreferencesBuilder` — Builds `Preferences` from CLI options and config files.
+  - `OutputWriter` — Handles writing output to files or stdout.
+  - `DiagnosticLogger` — Handles diagnostic logging for CLI operations.
+- Dependency Injection is used in `CliService` to allow testing with mock collaborators.
 - Modular package layout by responsibility (diagram generation, schema parsing/resolution, relationship handling).
 - Single-responsibility classes and small functions are used throughout (see `MermaidGenerator`, `SchemaFilesReader`, `RelationshipBuilder`, etc.).
 - Immutable data structures for inputs/outputs where applicable (data classes like `CliOptions`).

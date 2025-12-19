@@ -106,8 +106,9 @@ class App : CliktCommand(name = loadAppNameFromProperties()) {
             requiredStyleOption = requiredStyleOption
         )
         val cliService = CliService(
-            options
-        ) { msg, _ -> echo(msg) }
+            options = options,
+            echo = { msg, _ -> echo(msg) }
+        )
         cliService.execute()
     }
 }
